@@ -9,7 +9,7 @@ import { Field, SmartContract, state, State, method } from 'o1js';
  *
  * This file is safe to delete and replace with your own contract.
  */
-export class Add extends SmartContract {
+export class ProofOfAge extends SmartContract {
   @state(Field) num = State<Field>();
 
   init() {
@@ -17,9 +17,11 @@ export class Add extends SmartContract {
     this.num.set(Field(1));
   }
 
-  @method update() {
+  @method proveAge() // proof: Proof
+  {
+    // proof.verify().assertTrue();
     const currentState = this.num.getAndAssertEquals();
-    const newState = currentState.add(2);
+    const newState = currentState.add(1);
     this.num.set(newState);
   }
 }

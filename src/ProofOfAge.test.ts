@@ -1,4 +1,4 @@
-import { Add } from './Add';
+import { ProofOfAge } from './ProofOfAge';
 import { Field, Mina, PrivateKey, PublicKey, AccountUpdate } from 'o1js';
 
 /*
@@ -10,17 +10,17 @@ import { Field, Mina, PrivateKey, PublicKey, AccountUpdate } from 'o1js';
 
 let proofsEnabled = false;
 
-describe('Add', () => {
+describe('ProofOfAge', () => {
   let deployerAccount: PublicKey,
     deployerKey: PrivateKey,
     senderAccount: PublicKey,
     senderKey: PrivateKey,
     zkAppAddress: PublicKey,
     zkAppPrivateKey: PrivateKey,
-    zkApp: Add;
+    zkApp: ProofOfAge;
 
   beforeAll(async () => {
-    if (proofsEnabled) await Add.compile();
+    if (proofsEnabled) await ProofOfAge.compile();
   });
 
   beforeEach(() => {
@@ -32,7 +32,7 @@ describe('Add', () => {
       Local.testAccounts[1]);
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();
-    zkApp = new Add(zkAppAddress);
+    zkApp = new ProofOfAge(zkAppAddress);
   });
 
   async function localDeploy() {
@@ -56,12 +56,12 @@ describe('Add', () => {
 
     // update transaction
     const txn = await Mina.transaction(senderAccount, () => {
-      zkApp.update();
+      zkApp.proveAge();
     });
     await txn.prove();
     await txn.sign([senderKey]).send();
 
     const updatedNum = zkApp.num.get();
-    expect(updatedNum).toEqual(Field(3));
+    expect(updatedNum).toEqual(Field(2));
   });
 });

@@ -1,3 +1,3 @@
-import { Add } from './Add.js';
+import { ProofOfAge } from './ProofOfAge.js';
 
-export { Add };
+export { ProofOfAge };
