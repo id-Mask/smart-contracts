@@ -60,9 +60,10 @@ describe('ProofOfAge', () => {
 
   it('parses DoB', async () => {
     const zkOracleResponse = zkOracleResponseMock();
-    const { shouldVerify, publicOutput, proof } = await proofOfAge.parseDoB(
-      CircuitString.fromString(zkOracleResponse.data.pno)
-    );
-    console.log(shouldVerify.toBoolean(), publicOutput.toJSON(), proof);
+    const { shouldVerify, publicOutput, proof } =
+      await proofOfAge.dateOfBirthTimeStamp(
+        CircuitString.fromString(zkOracleResponse.data.pno)
+      );
+    console.log(shouldVerify.toBoolean(), publicOutput, proof);
   });
 });
