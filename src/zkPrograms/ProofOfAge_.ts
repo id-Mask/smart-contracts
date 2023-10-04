@@ -12,36 +12,34 @@ import {
 } from 'o1js';
 
 const proofOfAge = Experimental.ZkProgram({
+  publicOutput: Field,
   methods: {
     verifyData: {
       privateInputs: [
-        // the length of Encoding.stringToFields depends on type of characters
-        // simple char like 'a' takes in 1/31 of field space.
-        // complex chars like 'ą' takes in 1/15 of field space.
-        Provable.Array(Field, 1),
-        Provable.Array(Field, 1),
-        Provable.Array(Field, 1),
-        Provable.Array(Field, 1),
+        CircuitString,
+        CircuitString,
+        CircuitString,
+        CircuitString,
         Signature,
       ],
       method(
-        name: Field[],
-        surname: Field[],
-        country: Field[],
-        pno: Field[],
+        name: CircuitString,
+        surname: CircuitString,
+        country: CircuitString,
+        pno: CircuitString,
         signature: Signature
-      ) {
-        const publicKey = PublicKey.fromBase58(
-          'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
-        );
+      ): Field {
+        const PUBLIC_KEY =
+          'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN';
+        const publicKey = PublicKey.fromBase58(PUBLIC_KEY);
         const validSignature = signature.verify(publicKey, [
-          ...name,
-          ...surname,
-          ...country,
-          ...pno,
+          ...name.toFields(),
+          ...surname.toFields(),
+          ...country.toFields(),
+          ...pno.toFields(),
         ]);
         validSignature.assertTrue();
-        console.log('Is signature valid? ', validSignature);
+        return validSignature.toField();
       },
     },
 
@@ -53,17 +51,17 @@ const proofOfAge = Experimental.ZkProgram({
       // one check digit
 
       privateInputs: [CircuitString],
-      method(pno: CircuitString) {
+      method(pno: CircuitString): Field {
         // millenium
         const firstDigit = pno.values[6].value.sub(48);
         let century = Field(18);
         century = Circuit.if(
-          firstDigit.greaterThan(2),
+          firstDigit.greaterThanOrEqual(2),
           century.add(1),
           century
         );
         century = Circuit.if(
-          firstDigit.greaterThan(4),
+          firstDigit.greaterThanOrEqual(4),
           century.add(1),
           century
         );
@@ -74,40 +72,10 @@ const proofOfAge = Experimental.ZkProgram({
 
         // date / timestamp
         const date = century.mul(100).add(decade.mul(10).add(year));
-        Provable.log(
-          'century:',
-          century,
-          'decade:',
-          decade,
-          'year:',
-          year,
-          'date:',
-          date
-        );
-
         return date;
       },
     },
   },
 });
-
-// compile the program
-const { verificationKey } = await proofOfAge.compile();
-
-// test verifyData
-const name_ = Encoding.stringToFields('Hilary');
-const surname_ = Encoding.stringToFields('Ouse');
-const country_ = Encoding.stringToFields('EE');
-const pno_ = Encoding.stringToFields('PNOLT-40111117143');
-const signature_ = Signature.fromJSON({
-  r: '361140034067728913210095872454750584352705048498200155248897232741047694149',
-  s: '28810745723392019298982301650715922735888542456753873104096818457809789816848',
-});
-
-await proofOfAge.verifyData(name_, surname_, country_, pno_, signature_);
-
-// test parseDoB
-const pno = CircuitString.fromString('PNOLT-39509100123');
-await proofOfAge.parseDoB(pno);
 
 export { proofOfAge };

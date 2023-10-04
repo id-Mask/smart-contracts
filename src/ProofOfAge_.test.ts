@@ -1,35 +1,68 @@
 import { proofOfAge } from './zkPrograms/ProofOfAge_';
-import { Field, Mina, PrivateKey, PublicKey, AccountUpdate } from 'o1js';
-
-/*
- * This file specifies how to test the `Add` example smart contract. It is safe to delete this file and replace
- * with your own tests.
- *
- * See https://docs.minaprotocol.com/zkapps for more info.
- */
+import {
+  Field,
+  Mina,
+  PrivateKey,
+  PublicKey,
+  AccountUpdate,
+  CircuitString,
+  Signature,
+} from 'o1js';
+import 'dotenv/config';
 
 describe('ProofOfAge', () => {
+  const zkOracleResponseMock = () => {
+    const personalData = {
+      name: 'Hilary',
+      surname: 'Ouse',
+      country: 'EE',
+      pno: 'PNOLT-40111117143',
+    };
+    const TESTING_PRIVATE_KEY: string = process.env
+      .TESTING_PRIVATE_KEY as string;
+    const privateKey = PrivateKey.fromBase58(TESTING_PRIVATE_KEY);
+    const publicKey = privateKey.toPublicKey();
+
+    const dataToSign = [
+      ...CircuitString.fromString(personalData.name).toFields(),
+      ...CircuitString.fromString(personalData.surname).toFields(),
+      ...CircuitString.fromString(personalData.country).toFields(),
+      ...CircuitString.fromString(personalData.pno).toFields(),
+    ];
+
+    const signature = Signature.create(privateKey, dataToSign);
+
+    return {
+      data: personalData,
+      signature: signature.toJSON(),
+      publicKey: publicKey.toBase58(),
+    };
+  };
+
   beforeAll(async () => {
     const { verificationKey } = await proofOfAge.compile();
-    const response = await fetch(
-      'https://smart-id-oracle-2qz4wkdima-uc.a.run.app/get_mock_data'
-    );
-    const data = await response.json();
   });
 
-  beforeEach(async () => {
-    console.log('before each');
-  });
+  // beforeEach(async () => {
+  //   console.log('before each');
+  // });
 
   it('verifies zkOracle response data', async () => {
-    console.log('verify signature');
-    // const proof = await proofOfAge.proveAge(
-    //   name_,
-    //   surname_,
-    //   country_,
-    //   pno_,
-    //   signature_,
-    //   age_,
-    // );
+    const zkOracleResponse = zkOracleResponseMock();
+    const proof = await proofOfAge.verifyData(
+      CircuitString.fromString(zkOracleResponse.data.name),
+      CircuitString.fromString(zkOracleResponse.data.surname),
+      CircuitString.fromString(zkOracleResponse.data.country),
+      CircuitString.fromString(zkOracleResponse.data.pno),
+      Signature.fromJSON(zkOracleResponse.signature)
+    );
+  });
+
+  it('parses DoB', async () => {
+    const zkOracleResponse = zkOracleResponseMock();
+    const { shouldVerify, publicOutput, proof } = await proofOfAge.parseDoB(
+      CircuitString.fromString(zkOracleResponse.data.pno)
+    );
+    console.log(shouldVerify.toBoolean(), publicOutput.toJSON(), proof);
   });
 });
