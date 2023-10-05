@@ -1,4 +1,9 @@
-import { proofOfAge } from './zkPrograms/ProofOfAge_';
+import {
+  proofOfAge,
+  verifyOracleData,
+  parseUnixTimestampFromPNO,
+} from './zkPrograms/ProofOfAge_';
+
 import {
   Field,
   Mina,
@@ -8,6 +13,7 @@ import {
   CircuitString,
   Signature,
 } from 'o1js';
+
 import 'dotenv/config';
 
 describe('ProofOfAge', () => {
@@ -49,21 +55,35 @@ describe('ProofOfAge', () => {
 
   it('verifies zkOracle response data', async () => {
     const zkOracleResponse = zkOracleResponseMock();
-    const proof = await proofOfAge.verifyData(
+    const verified = verifyOracleData(
       CircuitString.fromString(zkOracleResponse.data.name),
       CircuitString.fromString(zkOracleResponse.data.surname),
       CircuitString.fromString(zkOracleResponse.data.country),
       CircuitString.fromString(zkOracleResponse.data.pno),
       Signature.fromJSON(zkOracleResponse.signature)
     );
+    expect(verified.toBoolean()).toBe(true);
   });
 
-  it('parses DoB', async () => {
+  it('parses DoB and estimates unix timestamp', async () => {
     const zkOracleResponse = zkOracleResponseMock();
-    const { shouldVerify, publicOutput, proof } =
-      await proofOfAge.dateOfBirthTimeStamp(
-        CircuitString.fromString(zkOracleResponse.data.pno)
-      );
+    const unixTimestamp = parseUnixTimestampFromPNO(
+      CircuitString.fromString(zkOracleResponse.data.pno)
+    );
+    console.log(unixTimestamp);
+  });
+
+  it('produce proof', async () => {
+    const zkOracleResponse = zkOracleResponseMock();
+    const ageToProveInYears = 18;
+    const { shouldVerify, publicOutput, proof } = await proofOfAge.proveAge(
+      Field(ageToProveInYears),
+      CircuitString.fromString(zkOracleResponse.data.name),
+      CircuitString.fromString(zkOracleResponse.data.surname),
+      CircuitString.fromString(zkOracleResponse.data.country),
+      CircuitString.fromString(zkOracleResponse.data.pno),
+      Signature.fromJSON(zkOracleResponse.signature)
+    );
     console.log(shouldVerify.toBoolean(), publicOutput, proof);
   });
 });
