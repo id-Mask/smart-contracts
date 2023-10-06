@@ -23,6 +23,7 @@ describe('ProofOfAge', () => {
       surname: 'Ouse',
       country: 'EE',
       pno: 'PNOLT-40111117143',
+      timestamp: Math.floor(Date.now() / 1000),
     };
     const TESTING_PRIVATE_KEY: string = process.env
       .TESTING_PRIVATE_KEY as string;
@@ -34,6 +35,7 @@ describe('ProofOfAge', () => {
       ...CircuitString.fromString(personalData.surname).toFields(),
       ...CircuitString.fromString(personalData.country).toFields(),
       ...CircuitString.fromString(personalData.pno).toFields(),
+      Field(personalData.timestamp),
     ];
 
     const signature = Signature.create(privateKey, dataToSign);
@@ -60,6 +62,7 @@ describe('ProofOfAge', () => {
       CircuitString.fromString(zkOracleResponse.data.surname),
       CircuitString.fromString(zkOracleResponse.data.country),
       CircuitString.fromString(zkOracleResponse.data.pno),
+      Field(zkOracleResponse.data.timestamp),
       Signature.fromJSON(zkOracleResponse.signature)
     );
     expect(verified.toBoolean()).toBe(true);
@@ -82,6 +85,7 @@ describe('ProofOfAge', () => {
       CircuitString.fromString(zkOracleResponse.data.surname),
       CircuitString.fromString(zkOracleResponse.data.country),
       CircuitString.fromString(zkOracleResponse.data.pno),
+      Field(zkOracleResponse.data.timestamp),
       Signature.fromJSON(zkOracleResponse.signature)
     );
     console.log(shouldVerify.toBoolean(), publicOutput, proof);

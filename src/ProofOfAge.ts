@@ -17,8 +17,7 @@ export class ProofOfAge extends SmartContract {
     this.num.set(Field(1));
   }
 
-  @method proveAge() // proof: Proof
-  {
+  @method proveAge() {
     // proof.verify().assertTrue();
     const currentState = this.num.getAndAssertEquals();
     const newState = currentState.add(1);

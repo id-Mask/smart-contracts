@@ -18,6 +18,7 @@ const verifyOracleData = (
   surname: CircuitString,
   country: CircuitString,
   pno: CircuitString,
+  timestamp: Field,
   signature: Signature
 ): Bool => {
   const PUBLIC_KEY = 'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN';
@@ -27,6 +28,7 @@ const verifyOracleData = (
     ...surname.toFields(),
     ...country.toFields(),
     ...pno.toFields(),
+    timestamp,
   ]);
   return validSignature;
 };
@@ -108,6 +110,7 @@ const proofOfAge = Experimental.ZkProgram({
         CircuitString, // surname
         CircuitString, // country
         CircuitString, // pno
+        Field, // timestamp
         Signature, // zkOracle data signature
       ],
       method(
@@ -116,6 +119,7 @@ const proofOfAge = Experimental.ZkProgram({
         surname: CircuitString,
         country: CircuitString,
         pno: CircuitString,
+        timestamp: Field,
         signature: Signature
       ): Bool {
         // verity zkOracle data
@@ -124,6 +128,7 @@ const proofOfAge = Experimental.ZkProgram({
           surname,
           country,
           pno,
+          timestamp,
           signature
         );
         verified.assertTrue();
@@ -131,8 +136,8 @@ const proofOfAge = Experimental.ZkProgram({
         // verify that (current time - age to prove) > date of birth
         const secondsPerYear = Field(31536000); // 365 * 24 * 60 * 60;
         const dateOfBirthUnixTimestamp = parseUnixTimestampFromPNO(pno);
-        const currentUnixTimestamp = Field(1696497370); // this should be current timestamp returned from the oracle.
-        const olderThanAgeToProve = currentUnixTimestamp
+
+        const olderThanAgeToProve = timestamp
           .sub(ageToProveInYears.mul(secondsPerYear))
           .greaterThan(dateOfBirthUnixTimestamp);
 
