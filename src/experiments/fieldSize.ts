@@ -18,5 +18,5 @@ const myProgram = Experimental.ZkProgram({
 // create proofs
 await myProgram.compile();
 
-// throws the error
-const proof = await myProgram.prove(Field(10), Field(9), Field(5));
+// throws the error because of negative Field value
+const proof = await myProgram.prove(Field(10), Field(11), Field(5));

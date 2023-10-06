@@ -1,8 +1,5 @@
-import {
-  proofOfAge,
-  verifyOracleData,
-  parseUnixTimestampFromPNO,
-} from './zkPrograms/ProofOfAge_';
+import { proofOfAge } from './ProofOfAge';
+import { verifyOracleData, parseUnixTimestampFromPNO } from './utils.js';
 
 import {
   Field,
@@ -73,7 +70,6 @@ describe('ProofOfAge', () => {
     const unixTimestamp = parseUnixTimestampFromPNO(
       CircuitString.fromString(zkOracleResponse.data.pno)
     );
-    console.log(unixTimestamp);
   });
 
   it('produce proof', async () => {
@@ -88,6 +84,5 @@ describe('ProofOfAge', () => {
       Field(zkOracleResponse.data.timestamp),
       Signature.fromJSON(zkOracleResponse.signature)
     );
-    console.log(shouldVerify.toBoolean(), publicOutput, proof);
   });
 });
