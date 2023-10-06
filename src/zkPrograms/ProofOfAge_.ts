@@ -137,6 +137,11 @@ const proofOfAge = Experimental.ZkProgram({
         const secondsPerYear = Field(31536000); // 365 * 24 * 60 * 60;
         const dateOfBirthUnixTimestamp = parseUnixTimestampFromPNO(pno);
 
+        // edge case: https://discord.com/channels/484437221055922177/1136989663152840714
+        timestamp
+          .greaterThan(ageToProveInYears.mul(secondsPerYear))
+          .assertTrue();
+
         const olderThanAgeToProve = timestamp
           .sub(ageToProveInYears.mul(secondsPerYear))
           .greaterThan(dateOfBirthUnixTimestamp);
