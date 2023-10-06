@@ -9,6 +9,8 @@ import {
   AccountUpdate,
   CircuitString,
   Signature,
+  verify,
+  Proof,
 } from 'o1js';
 
 import 'dotenv/config';
@@ -75,7 +77,7 @@ describe('ProofOfAge', () => {
   it('produce proof', async () => {
     const zkOracleResponse = zkOracleResponseMock();
     const ageToProveInYears = 18;
-    const { shouldVerify, publicOutput, proof } = await proofOfAge.proveAge(
+    const proof = await proofOfAge.proveAge(
       Field(ageToProveInYears),
       CircuitString.fromString(zkOracleResponse.data.name),
       CircuitString.fromString(zkOracleResponse.data.surname),
@@ -84,5 +86,6 @@ describe('ProofOfAge', () => {
       Field(zkOracleResponse.data.timestamp),
       Signature.fromJSON(zkOracleResponse.signature)
     );
+    console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);
   });
 });
