@@ -43,12 +43,12 @@ const parseUnixTimestampFromPNO = (pno: CircuitString) => {
   const firstDigit = pno.values[6].value.sub(48);
   let century = Field(18);
   century = Circuit.if(
-    firstDigit.greaterThanOrEqual(2),
+    firstDigit.greaterThanOrEqual(3),
     century.add(1),
     century
   );
   century = Circuit.if(
-    firstDigit.greaterThanOrEqual(4),
+    firstDigit.greaterThanOrEqual(5),
     century.add(1),
     century
   );
