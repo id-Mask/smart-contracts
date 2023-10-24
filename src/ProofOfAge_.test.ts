@@ -1,5 +1,5 @@
 import { proofOfAge } from './ProofOfAge';
-import { verifyOracleData, parseUnixTimestampFromPNO } from './utils.js';
+import { verifyOracleData, parseDateFromPNO } from './utils.js';
 
 import {
   Field,
@@ -21,8 +21,8 @@ describe('ProofOfAge', () => {
       name: 'Hilary',
       surname: 'Ouse',
       country: 'EE',
-      pno: 'PNOLT-40111117143',
-      timestamp: Math.floor(Date.now() / 1000),
+      pno: 'PNOLT-41111117143',
+      currentDate: '2023-10-24',
     };
     const TESTING_PRIVATE_KEY: string = process.env
       .TESTING_PRIVATE_KEY as string;
@@ -34,7 +34,7 @@ describe('ProofOfAge', () => {
       ...CircuitString.fromString(personalData.surname).toFields(),
       ...CircuitString.fromString(personalData.country).toFields(),
       ...CircuitString.fromString(personalData.pno).toFields(),
-      Field(personalData.timestamp),
+      ...CircuitString.fromString(personalData.currentDate).toFields(),
     ];
 
     const signature = Signature.create(privateKey, dataToSign);
@@ -61,15 +61,15 @@ describe('ProofOfAge', () => {
       CircuitString.fromString(zkOracleResponse.data.surname),
       CircuitString.fromString(zkOracleResponse.data.country),
       CircuitString.fromString(zkOracleResponse.data.pno),
-      Field(zkOracleResponse.data.timestamp),
+      CircuitString.fromString(zkOracleResponse.data.currentDate),
       Signature.fromJSON(zkOracleResponse.signature)
     );
     expect(verified.toBoolean()).toBe(true);
   });
 
-  it('parses DoB and estimates unix timestamp', async () => {
+  it('parses DoB', async () => {
     const zkOracleResponse = zkOracleResponseMock();
-    const unixTimestamp = parseUnixTimestampFromPNO(
+    const [dateYears, dateMonth, dateDay] = parseDateFromPNO(
       CircuitString.fromString(zkOracleResponse.data.pno)
     );
   });
@@ -83,7 +83,7 @@ describe('ProofOfAge', () => {
       CircuitString.fromString(zkOracleResponse.data.surname),
       CircuitString.fromString(zkOracleResponse.data.country),
       CircuitString.fromString(zkOracleResponse.data.pno),
-      Field(zkOracleResponse.data.timestamp),
+      CircuitString.fromString(zkOracleResponse.data.currentDate),
       Signature.fromJSON(zkOracleResponse.signature)
     );
     console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);

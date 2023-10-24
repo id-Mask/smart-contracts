@@ -13,7 +13,7 @@ const verifyOracleData = (
   surname: CircuitString,
   country: CircuitString,
   pno: CircuitString,
-  timestamp: Field,
+  currentDate: CircuitString,
   signature: Signature
 ): Bool => {
   const PUBLIC_KEY = 'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN';
@@ -23,7 +23,7 @@ const verifyOracleData = (
     ...surname.toFields(),
     ...country.toFields(),
     ...pno.toFields(),
-    timestamp,
+    ...currentDate.toFields(),
   ]);
   return validSignature;
 };
@@ -35,10 +35,7 @@ six digits that correspond to date of birth (YYMMDD)
 three digits that correspond to a serial number separating persons born on the same date
 one check digit
 */
-const parseUnixTimestampFromPNO = (pno: CircuitString) => {
-  // first lets exctract the numbers from pno
-  // then use it to calculate unix timestamp
-
+const parseDateFromPNO = (pno: CircuitString): Field[] => {
   // millenium
   const firstDigit = pno.values[6].value.sub(48);
   let century = Field(18);
@@ -61,38 +58,37 @@ const parseUnixTimestampFromPNO = (pno: CircuitString) => {
   const dayFirstDigit = pno.values[11].value.sub(48);
   const daySecondDigit = pno.values[12].value.sub(48);
 
-  // calculate unix timestamp
-  // the result is not accurate. Its off by 13.88 days. If birth year is 2001 11 11.
-  // correct: 1005433261, estimate: 1006632576, diff: 13.88096065 days
-  // all this due to manual calculation instead of using proper time lib.
+  // express these Fields as YYYY-MM-DD
+  const dateYears = century
+    .mul(Field(100))
+    .add(decade.mul(Field(10)))
+    .add(year);
+  const dateMonth = monthFirstDigit.mul(Field(10)).add(monthSecondDigit);
+  const dateDay = dayFirstDigit.mul(Field(10)).add(daySecondDigit);
 
-  const secondsPerCentury = Field(3153600000); // 100 * 365 * 24 * 60 * 60;
-  const secondsPerDecade = Field(315360000); // 10 * 365 * 24 * 60 * 60;
-  const secondsPerYear = Field(31536000); // 365 * 24 * 60 * 60;
-  const secondsPerMonth = Field(2630016); // 30.44 * 24 * 60 * 60;
-  const secondsPerDay = Field(86400); // 24 * 60 * 60;
-
-  const secondsPerCentury_ = century.sub(19).mul(secondsPerCentury);
-  const secondsPerDecade_ = decade.sub(7).mul(secondsPerDecade);
-  const secondsPerYear_ = year.sub(0).mul(secondsPerYear);
-  const secondsPerMonth_ = monthFirstDigit
-    .sub(0)
-    .mul(10)
-    .add(monthSecondDigit)
-    .mul(secondsPerMonth);
-  const secondsPerDay_ = dayFirstDigit
-    .sub(1)
-    .mul(10)
-    .add(daySecondDigit)
-    .mul(secondsPerDay);
-
-  const unixTimestamp = secondsPerCentury_
-    .add(secondsPerDecade_)
-    .add(secondsPerYear_)
-    .add(secondsPerMonth_)
-    .add(secondsPerDay_);
-
-  return unixTimestamp;
+  return [dateYears, dateMonth, dateDay];
 };
 
-export { verifyOracleData, parseUnixTimestampFromPNO };
+const parseDateFromDateString = (currentDate: CircuitString): Field[] => {
+  // get century, decade, year, month and day
+  // from CircuitString, e.g 2023-10-25
+  const millenium = currentDate.values[0].value.sub(48);
+  const century = currentDate.values[1].value.sub(48);
+  const decade = currentDate.values[2].value.sub(48);
+  const year = currentDate.values[3].value.sub(48);
+  const monthFirstDigit = currentDate.values[5].value.sub(48);
+  const monthSecondDigit = currentDate.values[6].value.sub(48);
+  const dayFirstDigit = currentDate.values[8].value.sub(48);
+  const daySecondDigit = currentDate.values[9].value.sub(48);
+
+  // format these Fields as if YYYY-MM-DD
+  const dateYears = millenium
+    .mul(Field(1000))
+    .add(century.mul(Field(100)).add(decade.mul(Field(10)).add(year)));
+  const dateMonth = monthFirstDigit.mul(Field(10)).add(monthSecondDigit);
+  const dateDay = dayFirstDigit.mul(Field(10)).add(daySecondDigit);
+
+  return [dateYears, dateMonth, dateDay];
+};
+
+export { verifyOracleData, parseDateFromPNO, parseDateFromDateString };
