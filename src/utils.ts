@@ -1,7 +1,9 @@
+import 'dotenv/config';
 import {
   Field,
   verify,
   PublicKey,
+  PrivateKey,
   Signature,
   CircuitString,
   Circuit,
@@ -91,4 +93,38 @@ const parseDateFromDateString = (currentDate: CircuitString): Field[] => {
   return [dateYears, dateMonth, dateDay];
 };
 
-export { verifyOracleData, parseDateFromPNO, parseDateFromDateString };
+const zkOracleResponseMock = () => {
+  const personalData = {
+    name: 'Hilary',
+    surname: 'Ouse',
+    country: 'EE',
+    pno: 'PNOLT-41111117143',
+    currentDate: '2023-10-24',
+  };
+  const TESTING_PRIVATE_KEY: string = process.env.TESTING_PRIVATE_KEY as string;
+  const privateKey = PrivateKey.fromBase58(TESTING_PRIVATE_KEY);
+  const publicKey = privateKey.toPublicKey();
+
+  const dataToSign = [
+    ...CircuitString.fromString(personalData.name).toFields(),
+    ...CircuitString.fromString(personalData.surname).toFields(),
+    ...CircuitString.fromString(personalData.country).toFields(),
+    ...CircuitString.fromString(personalData.pno).toFields(),
+    ...CircuitString.fromString(personalData.currentDate).toFields(),
+  ];
+
+  const signature = Signature.create(privateKey, dataToSign);
+
+  return {
+    data: personalData,
+    signature: signature.toJSON(),
+    publicKey: publicKey.toBase58(),
+  };
+};
+
+export {
+  verifyOracleData,
+  parseDateFromPNO,
+  parseDateFromDateString,
+  zkOracleResponseMock,
+};

@@ -13,6 +13,7 @@ import {
   SmartContract,
   State,
   state,
+  Provable,
 } from 'o1js';
 
 import {
@@ -87,16 +88,21 @@ export const proofOfAge = Experimental.ZkProgram({
   },
 });
 
+/*
+Use the zkPragram defined above to create an on-chain smart contract that
+consume the proof created by the program above and thus 'put' the proof on chain
+*/
+export class ProofOfAgeProof extends Experimental.ZkProgram.Proof(proofOfAge) {}
+
 export class ProofOfAge extends SmartContract {
   @state(Field) num = State<Field>();
-
   init() {
     super.init();
-    this.num.set(Field(1));
+    this.num.set(Field(0));
   }
-
-  @method proveAge() {
-    // proof.verify().assertTrue();
+  @method verifyProof(proof: ProofOfAgeProof) {
+    proof.verify();
+    Provable.log('Provided proof is valid');
     const currentState = this.num.getAndAssertEquals();
     const newState = currentState.add(1);
     this.num.set(newState);

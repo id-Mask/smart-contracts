@@ -12,7 +12,7 @@
  * Build the project: `$ npm run build`
  * Run with node:     `$ node build/src/interact.js <deployAlias>`.
  */
-import { Mina, PrivateKey } from 'o1js';
+import { Mina, PrivateKey, Proof } from 'o1js';
 import fs from 'fs/promises';
 import { ProofOfAge } from './ProofOfAge.js';
 
@@ -67,8 +67,14 @@ await ProofOfAge.compile();
 try {
   // call update() and send transaction
   console.log('build transaction and create proof...');
+  const proof = Proof.fromJSON({
+    publicInput: [],
+    publicOutput: [],
+    maxProofsVerified: 0,
+    proof: '',
+  });
   let tx = await Mina.transaction({ sender: feepayerAddress, fee }, () => {
-    zkApp.proveAge();
+    zkApp.verifyProof(proof);
   });
   await tx.prove();
   console.log('send transaction...');
