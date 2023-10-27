@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import {
   Field,
-  verify,
   PublicKey,
   PrivateKey,
   Signature,
