@@ -25,7 +25,7 @@ import {
   Mina,
 } from 'o1js';
 
-const myProgram = Experimental.ZkProgram({
+export const myProgram = Experimental.ZkProgram({
   publicOutput: Field,
   methods: {
     prove: {
@@ -38,9 +38,9 @@ const myProgram = Experimental.ZkProgram({
   },
 });
 
-class MyProgram extends Experimental.ZkProgram.Proof(myProgram) {}
+export class MyProgram extends Experimental.ZkProgram.Proof(myProgram) {}
 
-const otherProgram = Experimental.ZkProgram({
+export const otherProgram = Experimental.ZkProgram({
   publicOutput: Field,
   methods: {
     prove: {
@@ -53,7 +53,7 @@ const otherProgram = Experimental.ZkProgram({
   },
 });
 
-export class Contract extends SmartContract {
+export class myContract extends SmartContract {
   @method verifyProof(proof: MyProgram) {
     proof.verify();
     Provable.log(proof.publicOutput, Bool(true));
@@ -68,7 +68,7 @@ const proof = await myProgram.prove(Field(1));
 const otherProof = await otherProgram.prove(Field(2));
 
 // use proofs inside the SmartContract
-await Contract.compile();
+await myContract.compile();
 
 let deployerAccount: PublicKey,
   deployerKey: PrivateKey,
@@ -76,7 +76,7 @@ let deployerAccount: PublicKey,
   senderKey: PrivateKey,
   zkAppAddress: PublicKey,
   zkAppPrivateKey: PrivateKey,
-  zkApp: Contract;
+  zkApp: myContract;
 
 const proofsEnabled = true;
 const Local = Mina.LocalBlockchain({ proofsEnabled });
@@ -88,7 +88,7 @@ Mina.setActiveInstance(Local);
 
 zkAppPrivateKey = PrivateKey.random();
 zkAppAddress = zkAppPrivateKey.toPublicKey();
-zkApp = new Contract(zkAppAddress);
+zkApp = new myContract(zkAppAddress);
 
 const deployTxn = await Mina.transaction(deployerAccount, () => {
   AccountUpdate.fundNewAccount(deployerAccount);
@@ -97,16 +97,18 @@ const deployTxn = await Mina.transaction(deployerAccount, () => {
 await deployTxn.prove();
 await deployTxn.sign([deployerKey, zkAppPrivateKey]).send();
 
+console.log('use valid proof');
 const txn = await Mina.transaction(senderAccount, () => {
-  AccountUpdate.fundNewAccount(senderAccount);
+  // AccountUpdate.fundNewAccount(senderAccount);
   zkApp.verifyProof(proof);
 });
 await txn.prove();
-await txn.sign([deployerKey, zkAppPrivateKey]).send();
+await txn.sign([senderKey]).send();
 
+console.log('use invalid proof');
 const otherTxn = await Mina.transaction(senderAccount, () => {
-  AccountUpdate.fundNewAccount(senderAccount);
+  // AccountUpdate.fundNewAccount(senderAccount);
   zkApp.verifyProof(otherProof);
 });
 await otherTxn.prove();
-await otherTxn.sign([deployerKey, zkAppPrivateKey]).send();
+await otherTxn.sign([senderKey]).send();
