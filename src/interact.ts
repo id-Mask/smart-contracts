@@ -12,9 +12,25 @@
  * Build the project: `$ npm run build`
  * Run with node:     `$ node build/src/interact.js <deployAlias>`.
  */
-import { Mina, PrivateKey, Proof } from 'o1js';
 import fs from 'fs/promises';
-import { ProofOfAge } from './ProofOfAge.js';
+import { proofOfAge, ProofOfAge } from './ProofOfAge.js';
+
+import {
+  zkOracleResponseMock,
+  parseDateFromPNO,
+  verifyOracleData,
+} from './utils.js';
+
+import {
+  Field,
+  Mina,
+  PrivateKey,
+  PublicKey,
+  AccountUpdate,
+  CircuitString,
+  Signature,
+  JsonProof,
+} from 'o1js';
 
 // check command line arg
 let deployAlias = process.argv[2];
@@ -62,17 +78,24 @@ let zkApp = new ProofOfAge(zkAppAddress);
 
 let sentTx;
 // compile the contract to create prover keys
-console.log('compile the contract...');
+console.log('compile the contracts...');
+await proofOfAge.compile();
 await ProofOfAge.compile();
 try {
-  // call update() and send transaction
   console.log('build transaction and create proof...');
-  const proof = Proof.fromJSON({
-    publicInput: [],
-    publicOutput: [],
-    maxProofsVerified: 0,
-    proof: '',
-  });
+
+  const zkOracleResponse = zkOracleResponseMock();
+  const ageToProveInYears = 18;
+  const proof = await proofOfAge.proveAge(
+    Field(ageToProveInYears),
+    CircuitString.fromString(zkOracleResponse.data.name),
+    CircuitString.fromString(zkOracleResponse.data.surname),
+    CircuitString.fromString(zkOracleResponse.data.country),
+    CircuitString.fromString(zkOracleResponse.data.pno),
+    CircuitString.fromString(zkOracleResponse.data.currentDate),
+    Signature.fromJSON(zkOracleResponse.signature)
+  );
+
   let tx = await Mina.transaction({ sender: feepayerAddress, fee }, () => {
     zkApp.verifyProof(proof);
   });
