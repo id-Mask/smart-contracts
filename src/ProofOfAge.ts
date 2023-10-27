@@ -9,6 +9,7 @@ import {
   State,
   state,
   Provable,
+  Permissions,
 } from 'o1js';
 
 import {
@@ -90,16 +91,26 @@ consume the proof created by the program above and thus 'put' the proof on chain
 export class ProofOfAgeProof extends Experimental.ZkProgram.Proof(proofOfAge) {}
 
 export class ProofOfAge extends SmartContract {
-  @state(Field) num = State<Field>();
+  events = {
+    'provided-valid-proof-with-age': Field,
+  };
   init() {
     super.init();
-    this.num.set(Field(0));
+    // https://docs.minaprotocol.com/zkapps/o1js/permissions#types-of-permissions
+    this.account.permissions.set({
+      ...Permissions.default(),
+    });
   }
   @method verifyProof(proof: ProofOfAgeProof) {
+    // if the proof is invalid, this will fail
+    // its impossible to run past this withought a valid proof
     proof.verify();
-    Provable.log('Provided proof is valid');
-    const currentState = this.num.getAndAssertEquals();
-    const newState = currentState.add(1);
-    this.num.set(newState);
+
+    // the above is enough to be able to check if an address has a proof
+    // but there needs to be a way to save the number of years that are proved
+    // emit an event with number of years to be able to query it via archive nodes
+
+    // surely events are not designed for this, but it will do the trick..?
+    this.emitEvent('provided-valid-proof-with-age', proof.publicInput);
   }
 }
