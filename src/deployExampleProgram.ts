@@ -66,10 +66,10 @@ const { verificationKey } = await myContract.compile();
 
 // create transaction, sign and send
 console.log('creating transaction');
-let tx = await Mina.transaction({ sender: zkappAddress, fee }, () => {
+let tx = await Mina.transaction({ sender: feePayerAddress, fee: fee }, () => {
   new myContract(zkappAddress).deploy({ verificationKey });
 });
-let signedTx = await tx.sign([feePayerKey]);
+let signedTx = await tx.sign([feePayerKey, zkappKey]);
 console.log(signedTx.toJSON());
 let sentTx = signedTx.send();
 console.log(sentTx);
