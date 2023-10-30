@@ -71,5 +71,5 @@ let tx = await Mina.transaction({ sender: feePayerAddress, fee: fee }, () => {
 });
 let signedTx = await tx.sign([feePayerKey, zkappKey]);
 console.log(signedTx.toJSON());
-let sentTx = signedTx.send();
+let sentTx = await signedTx.send();
 console.log(sentTx);
