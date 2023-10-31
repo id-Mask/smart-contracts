@@ -12,7 +12,7 @@ https://discord.com/channels/484437221055922177/1151810908331450398/115181090833
 Solution: https://discord.com/channels/484437221055922177/1047214314349658172/threads/1167472139574714599
 */
 
-import { PrivateKey, Mina, AccountUpdate } from 'o1js';
+import { PrivateKey, Mina, AccountUpdate, UInt32, fetchAccount } from 'o1js';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
@@ -58,6 +58,10 @@ const Network = Mina.Network(config.url);
 const fee = Number(config.fee) * 1e9;
 Mina.setActiveInstance(Network);
 
+// fetch to get all the account data including nonce?
+await fetchAccount({ publicKey: zkAppAddress });
+await fetchAccount({ publicKey: feePayerAddress });
+
 // compile
 console.log('compile the contracts...');
 await proofOfAge.compile();
@@ -67,20 +71,25 @@ const zkApp = new ProofOfAge(zkAppAddress);
 // create transaction, sign and send
 console.log('creating transaction');
 let tx = await Mina.transaction({ sender: feePayerAddress, fee: fee }, () => {
-  //deplot to a new address (empty account)
+  // deploy to a new address (empty account)
   // zkApp.deploy({ verificationKey });
+  // zkApp.zkappURI.set('https://idmask.xyz');
 
   // redeploy by setting new verificationKey
   // https://discord.com/channels/484437221055922177/1086325036643790998/1088450285292224562
   // https://discord.com/channels/484437221055922177/915745847692636181/1000675690842177547
+  // https://discord.com/channels/484437221055922177/1168554028851011614
   let update = AccountUpdate.create(zkAppAddress);
   update.account.verificationKey.set(verificationKey);
-  // update.account.zkappUri.set('https://idmask.xyz');
+  update.account.zkappUri.set('https://idmask.xyz');
   update.sign(zkAppKey);
+  // update.account.nonce.assertEquals(UInt32.from(1));
 });
+
+console.log('before sending');
 let signedTx = await tx.sign([feePayerKey, zkAppKey]);
 await tx.prove();
-console.log(signedTx.toJSON());
+console.log(signedTx.toPretty());
 let sentTx = await signedTx.send();
 
 if (sentTx?.hash() !== undefined) {
