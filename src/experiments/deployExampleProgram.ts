@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 import fs from 'fs/promises';
 
-import { myProgram, myContract } from './exampleProgram.js';
+import { myProgram, MyContract } from './exampleProgram.js';
 
 // parse config and private key from file
 let deployAlias = 'berkeley';
@@ -62,12 +62,12 @@ Mina.setActiveInstance(Network);
 // compile
 console.log('compile the contracts...');
 await myProgram.compile();
-const { verificationKey } = await myContract.compile();
+const { verificationKey } = await MyContract.compile();
 
 // create transaction, sign and send
 console.log('creating transaction');
 let tx = await Mina.transaction({ sender: feePayerAddress, fee: fee }, () => {
-  new myContract(zkappAddress).deploy({ verificationKey });
+  new MyContract(zkappAddress).deploy({ verificationKey });
 });
 let signedTx = await tx.sign([feePayerKey, zkappKey]);
 console.log(signedTx.toJSON());
