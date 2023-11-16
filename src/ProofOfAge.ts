@@ -16,7 +16,7 @@ import {
   verifyOracleData,
   parseDateFromPNO,
   parseDateFromDateString,
-} from './utils.js';
+} from './ProofOfAge.utils.js';
 
 export const proofOfAge = Experimental.ZkProgram({
   publicInput: Field, // ageToProveInYears
