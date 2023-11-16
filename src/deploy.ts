@@ -19,9 +19,26 @@ import { dirname } from 'node:path';
 import fs from 'fs/promises';
 
 import { proofOfAge, ProofOfAge } from './ProofOfAge.js';
+import { proofOfSanctions, ProofOfSanctions } from './ProofOfSanctions.js';
+
+// proofs map
+interface Proofs {
+  [key: string]: { zkProgram: any; smartContract: any };
+}
+
+const proofs: Proofs = {
+  ProofOfAge: { zkProgram: proofOfAge, smartContract: ProofOfAge },
+  ProofOfSanctions: {
+    zkProgram: proofOfSanctions,
+    smartContract: ProofOfSanctions,
+  },
+};
 
 // parse config and private key from file
-let deployAlias = 'berkeley';
+let deployAlias = process.argv[2];
+if (!deployAlias) throw Error('Missing <deployAlias> argument');
+Error.stackTraceLimit = 1000;
+
 type Config = {
   deployAliases: Record<
     string,
@@ -49,6 +66,12 @@ let zkAppKeyBase58: { privateKey: string; publicKey: string } = JSON.parse(
 let zkAppKey = PrivateKey.fromBase58(zkAppKeyBase58.privateKey);
 let zkAppAddress = zkAppKey.toPublicKey();
 
+const deployData = {
+  program: deployAlias,
+  toPublicKey: zkAppKeyBase58.publicKey,
+};
+console.log(JSON.stringify(deployData, null, 2));
+
 // fee payer keys
 let feePayerKey = PrivateKey.fromBase58(feePayerBase58.privateKey);
 let feePayerAddress = feePayerKey.toPublicKey();
@@ -64,9 +87,9 @@ await fetchAccount({ publicKey: feePayerAddress });
 
 // compile
 console.log('compile the contracts...');
-await proofOfAge.compile();
-const { verificationKey } = await ProofOfAge.compile();
-const zkApp = new ProofOfAge(zkAppAddress);
+await proofs[deployAlias].zkProgram.compile();
+const { verificationKey } = await proofs[deployAlias].smartContract.compile();
+const zkApp = new proofs[deployAlias].smartContract(zkAppAddress);
 
 // create transaction, sign and send
 console.log('creating transaction');

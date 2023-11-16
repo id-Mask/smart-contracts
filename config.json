@@ -1,13 +1,21 @@
 {
   "version": 1,
   "deployAliases": {
-    "berkeley": {
+    "ProofOfAge": {
       "url": "https://proxy.berkeley.minaexplorer.com/graphql",
-      "keyPath": "keys/berkeley.json",
+      "keyPath": "keys/ProofOfAge.json",
       "feepayerKeyPath": "/home/raidas/.cache/zkapp-cli/keys/berkeley_alias.json",
       "feepayerAlias": "berkeley_alias",
       "fee": "0.1",
-      "smartContract": "myContract"
+      "smartContract": "ProofOfAge"
+    },
+    "ProofOfSanctions": {
+      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "keyPath": "keys/ProofOfSanctions.json",
+      "feepayerKeyPath": "/home/raidas/.cache/zkapp-cli/keys/berkeley_alias.json",
+      "feepayerAlias": "berkeley_alias",
+      "fee": "0.1",
+      "smartContract": "ProofOfSanctions"
     }
   }
 }
