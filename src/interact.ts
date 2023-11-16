@@ -5,7 +5,7 @@ import {
   zkOracleResponseMock,
   parseDateFromPNO,
   verifyOracleData,
-} from './utils.js';
+} from './ProofOfAge.utils.js';
 
 import {
   Field,
