@@ -15,15 +15,16 @@ class PersonalData extends Struct({
   surname: CircuitString,
   country: CircuitString,
   pno: CircuitString,
-  currentDate: CircuitString,
+  currentDate: Field,
 }) {
+  // method for signature creation and verification
   toFields(): Field[] {
     return [
       ...this.name.toFields(),
       ...this.surname.toFields(),
       ...this.country.toFields(),
       ...this.pno.toFields(),
-      ...this.currentDate.toFields(),
+      this.currentDate,
     ];
   }
 }
@@ -35,7 +36,16 @@ six digits that correspond to date of birth (YYMMDD)
 three digits that correspond to a serial number separating persons born on the same date
 one check digit
 */
-const parseDateFromPNO = (pno: CircuitString): Field[] => {
+const parseDateFromPNO = (pno: CircuitString): Field => {
+  /*
+    pno: CircuitString is an array of 128 Fields, where each Field represents a char
+    Each char is represented in UTF-16 decimals, for example:
+      • 0 === 48
+      • 1 === 49
+      • 2 === 50
+    UTF-16 table: https://asecuritysite.com/coding/asc2
+  */
+
   // millenium
   const firstDigit = pno.values[6].value.sub(48);
   let century = Field(18);
@@ -58,37 +68,17 @@ const parseDateFromPNO = (pno: CircuitString): Field[] => {
   const dayFirstDigit = pno.values[11].value.sub(48);
   const daySecondDigit = pno.values[12].value.sub(48);
 
-  // express these Fields as YYYY-MM-DD
-  const dateYears = century
-    .mul(Field(100))
-    .add(decade.mul(Field(10)))
-    .add(year);
-  const dateMonth = monthFirstDigit.mul(Field(10)).add(monthSecondDigit);
-  const dateDay = dayFirstDigit.mul(Field(10)).add(daySecondDigit);
+  // express it as a single int, e.g. 20231124
+  const date = century
+    .mul(Field(1000000))
+    .add(decade.mul(Field(100000)))
+    .add(year.mul(Field(10000)))
+    .add(monthFirstDigit.mul(Field(1000)))
+    .add(monthSecondDigit.mul(Field(100)))
+    .add(dayFirstDigit.mul(Field(10)))
+    .add(daySecondDigit.mul(Field(1)));
 
-  return [dateYears, dateMonth, dateDay];
-};
-
-const parseDateFromDateString = (currentDate: CircuitString): Field[] => {
-  // get century, decade, year, month and day
-  // from CircuitString, e.g 2023-10-25
-  const millenium = currentDate.values[0].value.sub(48);
-  const century = currentDate.values[1].value.sub(48);
-  const decade = currentDate.values[2].value.sub(48);
-  const year = currentDate.values[3].value.sub(48);
-  const monthFirstDigit = currentDate.values[5].value.sub(48);
-  const monthSecondDigit = currentDate.values[6].value.sub(48);
-  const dayFirstDigit = currentDate.values[8].value.sub(48);
-  const daySecondDigit = currentDate.values[9].value.sub(48);
-
-  // format these Fields as if YYYY-MM-DD
-  const dateYears = millenium
-    .mul(Field(1000))
-    .add(century.mul(Field(100)).add(decade.mul(Field(10)).add(year)));
-  const dateMonth = monthFirstDigit.mul(Field(10)).add(monthSecondDigit);
-  const dateDay = dayFirstDigit.mul(Field(10)).add(daySecondDigit);
-
-  return [dateYears, dateMonth, dateDay];
+  return date;
 };
 
 const zkOracleResponseMock = () => {
@@ -101,7 +91,7 @@ const zkOracleResponseMock = () => {
     surname: 'Ouse',
     country: 'EE',
     pno: 'PNOLT-41111117143',
-    currentDate: '2023-10-24',
+    currentDate: 20231024,
   };
 
   const personalData = new PersonalData({
@@ -109,7 +99,7 @@ const zkOracleResponseMock = () => {
     surname: CircuitString.fromString(data.surname),
     country: CircuitString.fromString(data.country),
     pno: CircuitString.fromString(data.pno),
-    currentDate: CircuitString.fromString(data.currentDate),
+    currentDate: Field(data.currentDate),
   });
 
   const signature = Signature.create(privateKey, personalData.toFields());
@@ -121,10 +111,4 @@ const zkOracleResponseMock = () => {
   };
 };
 
-export {
-  PersonalData,
-  // verifyOracleData,
-  parseDateFromPNO,
-  parseDateFromDateString,
-  zkOracleResponseMock,
-};
+export { PersonalData, parseDateFromPNO, zkOracleResponseMock };

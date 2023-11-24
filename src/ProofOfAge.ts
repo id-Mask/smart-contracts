@@ -13,11 +13,7 @@ import {
   PublicKey,
 } from 'o1js';
 
-import {
-  PersonalData,
-  parseDateFromPNO,
-  parseDateFromDateString,
-} from './ProofOfAge.utils.js';
+import { PersonalData, parseDateFromPNO } from './ProofOfAge.utils.js';
 
 export const proofOfAge = Experimental.ZkProgram({
   publicInput: Field, // ageToProveInYears
@@ -33,7 +29,7 @@ export const proofOfAge = Experimental.ZkProgram({
         personalData: PersonalData,
         signature: Signature
       ): Bool {
-        // verity zkOracle data
+        // verify zkOracle data
         const oraclePuclicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
         );
@@ -43,34 +39,16 @@ export const proofOfAge = Experimental.ZkProgram({
         );
         validSignature.assertTrue();
 
-        const [birthYear, birthMonth, birthDay] = parseDateFromPNO(
-          personalData.pno
-        );
-        const [currentYear, currentMonth, currentDay] = parseDateFromDateString(
-          personalData.currentDate
-        );
+        // parse date of birth from pno
+        const dateOfBirth = parseDateFromPNO(personalData.pno);
 
         // edge case: https://discord.com/channels/484437221055922177/1136989663152840714
-        currentYear.greaterThan(birthYear).assertTrue();
-
-        // convert everything to days, so that it is easy to compare two numbers
-        // numbers (year, month, day) will be expressed in days, e.g. 2010 = 2010 * 365
-        const daysPerYear = Field(365);
-        const daysPerMonth = Field(30);
-        const birthDateInDays = birthYear
-          .mul(daysPerYear)
-          .add(birthMonth.mul(daysPerMonth))
-          .add(birthDay);
-        const currentDateInDays = currentYear
-          .mul(daysPerYear)
-          .add(currentMonth.mul(daysPerMonth))
-          .add(currentDay);
-        const ageToProveInDays = ageToProveInYears.mul(daysPerYear);
+        personalData.currentDate.greaterThan(dateOfBirth).assertTrue();
 
         // verify that (current date - age to prove) > date of birth
-        const olderThanAgeToProve = currentDateInDays
-          .sub(ageToProveInDays)
-          .greaterThan(birthDateInDays);
+        const olderThanAgeToProve = personalData.currentDate
+          .sub(ageToProveInYears.mul(Field(10000)))
+          .greaterThan(dateOfBirth);
         olderThanAgeToProve.assertTrue();
 
         return olderThanAgeToProve;
