@@ -7,27 +7,26 @@ import {
   CircuitString,
   Circuit,
   Bool,
+  Struct,
 } from 'o1js';
 
-const verifyOracleData = (
+class PersonalData extends Struct({
   name: CircuitString,
   surname: CircuitString,
   country: CircuitString,
   pno: CircuitString,
   currentDate: CircuitString,
-  signature: Signature
-): Bool => {
-  const PUBLIC_KEY = 'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN';
-  const publicKey = PublicKey.fromBase58(PUBLIC_KEY);
-  const validSignature = signature.verify(publicKey, [
-    ...name.toFields(),
-    ...surname.toFields(),
-    ...country.toFields(),
-    ...pno.toFields(),
-    ...currentDate.toFields(),
-  ]);
-  return validSignature;
-};
+}) {
+  toFields(): Field[] {
+    return [
+      ...this.name.toFields(),
+      ...this.surname.toFields(),
+      ...this.country.toFields(),
+      ...this.pno.toFields(),
+      ...this.currentDate.toFields(),
+    ];
+  }
+}
 
 /*
 11 digits (https://learn.microsoft.com/en-us/purview/sit-defn-estonia-personal-identification-code):
@@ -93,36 +92,38 @@ const parseDateFromDateString = (currentDate: CircuitString): Field[] => {
 };
 
 const zkOracleResponseMock = () => {
-  const personalData = {
+  const TESTING_PRIVATE_KEY: string = process.env.TESTING_PRIVATE_KEY as string;
+  const privateKey = PrivateKey.fromBase58(TESTING_PRIVATE_KEY);
+  const publicKey = privateKey.toPublicKey();
+
+  const data = {
     name: 'Hilary',
     surname: 'Ouse',
     country: 'EE',
     pno: 'PNOLT-41111117143',
     currentDate: '2023-10-24',
   };
-  const TESTING_PRIVATE_KEY: string = process.env.TESTING_PRIVATE_KEY as string;
-  const privateKey = PrivateKey.fromBase58(TESTING_PRIVATE_KEY);
-  const publicKey = privateKey.toPublicKey();
 
-  const dataToSign = [
-    ...CircuitString.fromString(personalData.name).toFields(),
-    ...CircuitString.fromString(personalData.surname).toFields(),
-    ...CircuitString.fromString(personalData.country).toFields(),
-    ...CircuitString.fromString(personalData.pno).toFields(),
-    ...CircuitString.fromString(personalData.currentDate).toFields(),
-  ];
+  const personalData = new PersonalData({
+    name: CircuitString.fromString(data.name),
+    surname: CircuitString.fromString(data.surname),
+    country: CircuitString.fromString(data.country),
+    pno: CircuitString.fromString(data.pno),
+    currentDate: CircuitString.fromString(data.currentDate),
+  });
 
-  const signature = Signature.create(privateKey, dataToSign);
+  const signature = Signature.create(privateKey, personalData.toFields());
 
   return {
-    data: personalData,
+    data: data,
     signature: signature.toJSON(),
     publicKey: publicKey.toBase58(),
   };
 };
 
 export {
-  verifyOracleData,
+  PersonalData,
+  // verifyOracleData,
   parseDateFromPNO,
   parseDateFromDateString,
   zkOracleResponseMock,

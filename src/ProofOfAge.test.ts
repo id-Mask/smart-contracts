@@ -1,9 +1,10 @@
 // Import statements from both files
 import { proofOfAge, ProofOfAge, ProofOfAgeProof } from './ProofOfAge.js';
 import {
+  PersonalData,
   zkOracleResponseMock,
   parseDateFromPNO,
-  verifyOracleData,
+  // verifyOracleData,
 } from './ProofOfAge.utils.js';
 import {
   Field,
@@ -38,15 +39,19 @@ describe('ProofOfAge', () => {
   */
   it('zkProgram: verifies zkOracle response data', async () => {
     const zkOracleResponse = zkOracleResponseMock();
-    const verified = verifyOracleData(
-      CircuitString.fromString(zkOracleResponse.data.name),
-      CircuitString.fromString(zkOracleResponse.data.surname),
-      CircuitString.fromString(zkOracleResponse.data.country),
-      CircuitString.fromString(zkOracleResponse.data.pno),
-      CircuitString.fromString(zkOracleResponse.data.currentDate),
-      Signature.fromJSON(zkOracleResponse.signature)
+    const personalData = new PersonalData({
+      name: CircuitString.fromString(zkOracleResponse.data.name),
+      surname: CircuitString.fromString(zkOracleResponse.data.surname),
+      country: CircuitString.fromString(zkOracleResponse.data.country),
+      pno: CircuitString.fromString(zkOracleResponse.data.pno),
+      currentDate: CircuitString.fromString(zkOracleResponse.data.currentDate),
+    });
+    const signature = Signature.fromJSON(zkOracleResponse.signature);
+    const validSignature = signature.verify(
+      PublicKey.fromBase58(zkOracleResponse.publicKey),
+      personalData.toFields()
     );
-    expect(verified.toBoolean()).toBe(true);
+    expect(validSignature.toBoolean()).toBe(true);
   });
 
   it('zkProgram: parses DoB', async () => {
@@ -62,13 +67,16 @@ describe('ProofOfAge', () => {
   it('zkProgram: produces proof', async () => {
     const zkOracleResponse = zkOracleResponseMock();
     const ageToProveInYears = 18;
+    const personalData = new PersonalData({
+      name: CircuitString.fromString(zkOracleResponse.data.name),
+      surname: CircuitString.fromString(zkOracleResponse.data.surname),
+      country: CircuitString.fromString(zkOracleResponse.data.country),
+      pno: CircuitString.fromString(zkOracleResponse.data.pno),
+      currentDate: CircuitString.fromString(zkOracleResponse.data.currentDate),
+    });
     const proof = await proofOfAge.proveAge(
       Field(ageToProveInYears),
-      CircuitString.fromString(zkOracleResponse.data.name),
-      CircuitString.fromString(zkOracleResponse.data.surname),
-      CircuitString.fromString(zkOracleResponse.data.country),
-      CircuitString.fromString(zkOracleResponse.data.pno),
-      CircuitString.fromString(zkOracleResponse.data.currentDate),
+      personalData,
       Signature.fromJSON(zkOracleResponse.signature)
     );
     const proofJson = proof.toJSON();
@@ -127,13 +135,16 @@ describe('ProofOfAge', () => {
     // create the zkProgram proof
     const zkOracleResponse = zkOracleResponseMock();
     const ageToProveInYears = 18;
+    const personalData = new PersonalData({
+      name: CircuitString.fromString(zkOracleResponse.data.name),
+      surname: CircuitString.fromString(zkOracleResponse.data.surname),
+      country: CircuitString.fromString(zkOracleResponse.data.country),
+      pno: CircuitString.fromString(zkOracleResponse.data.pno),
+      currentDate: CircuitString.fromString(zkOracleResponse.data.currentDate),
+    });
     const proof = await proofOfAge.proveAge(
       Field(ageToProveInYears),
-      CircuitString.fromString(zkOracleResponse.data.name),
-      CircuitString.fromString(zkOracleResponse.data.surname),
-      CircuitString.fromString(zkOracleResponse.data.country),
-      CircuitString.fromString(zkOracleResponse.data.pno),
-      CircuitString.fromString(zkOracleResponse.data.currentDate),
+      personalData,
       Signature.fromJSON(zkOracleResponse.signature)
     );
     const proofJson = proof.toJSON();

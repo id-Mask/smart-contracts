@@ -10,10 +10,11 @@ import {
   state,
   Provable,
   Permissions,
+  PublicKey,
 } from 'o1js';
 
 import {
-  verifyOracleData,
+  PersonalData,
   parseDateFromPNO,
   parseDateFromDateString,
 } from './ProofOfAge.utils.js';
@@ -24,36 +25,30 @@ export const proofOfAge = Experimental.ZkProgram({
   methods: {
     proveAge: {
       privateInputs: [
-        CircuitString, // name
-        CircuitString, // surname
-        CircuitString, // country
-        CircuitString, // pno
-        CircuitString, // currentDate
+        PersonalData,
         Signature, // zkOracle data signature
       ],
       method(
         ageToProveInYears: Field,
-        name: CircuitString,
-        surname: CircuitString,
-        country: CircuitString,
-        pno: CircuitString,
-        currentDate: CircuitString,
+        personalData: PersonalData,
         signature: Signature
       ): Bool {
         // verity zkOracle data
-        const verified = verifyOracleData(
-          name,
-          surname,
-          country,
-          pno,
-          currentDate,
-          signature
+        const oraclePuclicKey = PublicKey.fromBase58(
+          'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
         );
-        verified.assertTrue();
+        const validSignature = signature.verify(
+          oraclePuclicKey,
+          personalData.toFields()
+        );
+        validSignature.assertTrue();
 
-        const [birthYear, birthMonth, birthDay] = parseDateFromPNO(pno);
-        const [currentYear, currentMonth, currentDay] =
-          parseDateFromDateString(currentDate);
+        const [birthYear, birthMonth, birthDay] = parseDateFromPNO(
+          personalData.pno
+        );
+        const [currentYear, currentMonth, currentDay] = parseDateFromDateString(
+          personalData.currentDate
+        );
 
         // edge case: https://discord.com/channels/484437221055922177/1136989663152840714
         currentYear.greaterThan(birthYear).assertTrue();
