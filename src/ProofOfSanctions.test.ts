@@ -17,7 +17,6 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
-  CircuitString,
   Signature,
   JsonProof,
   Bool,
@@ -49,7 +48,7 @@ describe('ProofOfSanctions', () => {
     const verified = verifyOracleData(
       Bool(zkOracleResponse.data.isMatched),
       Field(zkOracleResponse.data.minScore),
-      CircuitString.fromString(zkOracleResponse.data.currentDate),
+      Field(zkOracleResponse.data.currentDate),
       Signature.fromJSON(zkOracleResponse.signature)
     );
     expect(verified.toBoolean()).toBe(true);
@@ -61,7 +60,7 @@ describe('ProofOfSanctions', () => {
     const publicInput = new PublicInput({
       isMatched: Bool(zkOracleResponse.data.isMatched),
       minScore: Field(zkOracleResponse.data.minScore),
-      currentDate: CircuitString.fromString(zkOracleResponse.data.currentDate),
+      currentDate: Field(zkOracleResponse.data.currentDate),
     });
     const proof = await proofOfSanctions.proveSanctions(
       publicInput,
@@ -115,8 +114,6 @@ describe('ProofOfSanctions', () => {
 
   it('smart contract: generates and deploys', async () => {
     await localDeploy();
-    // const num = zkApp.num.get();
-    // expect(num).toEqual(Field(0));
   });
 
   it('smart contract: consumes the proof and runs method', async () => {
@@ -127,7 +124,7 @@ describe('ProofOfSanctions', () => {
     const publicInput = new PublicInput({
       isMatched: Bool(zkOracleResponse.data.isMatched),
       minScore: Field(zkOracleResponse.data.minScore),
-      currentDate: CircuitString.fromString(zkOracleResponse.data.currentDate),
+      currentDate: Field(zkOracleResponse.data.currentDate),
     });
     const proof = await proofOfSanctions.proveSanctions(
       publicInput,
@@ -144,8 +141,5 @@ describe('ProofOfSanctions', () => {
     });
     await txn.prove();
     await txn.sign([senderKey]).send();
-
-    // const updatedNum = zkApp.num.get();
-    // expect(updatedNum).toEqual(Field(1));
   });
 });

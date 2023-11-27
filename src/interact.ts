@@ -4,7 +4,7 @@ import { proofOfAge, ProofOfAge } from './ProofOfAge.js';
 import {
   zkOracleResponseMock,
   parseDateFromPNO,
-  verifyOracleData,
+  PersonalData,
 } from './ProofOfAge.utils.js';
 
 import {
@@ -71,14 +71,17 @@ try {
   console.log('build transaction and create proof...');
 
   const zkOracleResponse = zkOracleResponseMock();
+  const personalData = new PersonalData({
+    name: CircuitString.fromString(zkOracleResponse.data.name),
+    surname: CircuitString.fromString(zkOracleResponse.data.surname),
+    country: CircuitString.fromString(zkOracleResponse.data.country),
+    pno: CircuitString.fromString(zkOracleResponse.data.pno),
+    currentDate: Field(zkOracleResponse.data.currentDate),
+  });
   const ageToProveInYears = 18;
   const proof = await proofOfAge.proveAge(
     Field(ageToProveInYears),
-    CircuitString.fromString(zkOracleResponse.data.name),
-    CircuitString.fromString(zkOracleResponse.data.surname),
-    CircuitString.fromString(zkOracleResponse.data.country),
-    CircuitString.fromString(zkOracleResponse.data.pno),
-    CircuitString.fromString(zkOracleResponse.data.currentDate),
+    personalData,
     Signature.fromJSON(zkOracleResponse.signature)
   );
 

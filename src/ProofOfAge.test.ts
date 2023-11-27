@@ -80,6 +80,7 @@ describe('ProofOfAge', () => {
     const proofJson = proof.toJSON();
     expect(proofJson.publicInput[0]).toBe(ageToProveInYears.toString());
     expect(proofJson.publicOutput[0]).toBe('1');
+    expect(proofJson.publicOutput[1]).toBe('20231024');
     // console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);
   });
 
@@ -123,8 +124,6 @@ describe('ProofOfAge', () => {
 
   it('smart contract: generates and deploys', async () => {
     await localDeploy();
-    // const num = zkApp.num.get();
-    // expect(num).toEqual(Field(0));
   });
 
   it('smart contract: consumes the proof and runs method', async () => {

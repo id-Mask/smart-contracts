@@ -11,13 +11,19 @@ import {
   Provable,
   Permissions,
   PublicKey,
+  Struct,
 } from 'o1js';
 
 import { PersonalData, parseDateFromPNO } from './ProofOfAge.utils.js';
 
+class ProofOutput extends Struct({
+  olderThanAgeToProve: Bool,
+  currentDate: Field,
+}) {}
+
 export const proofOfAge = Experimental.ZkProgram({
   publicInput: Field, // ageToProveInYears
-  publicOutput: Bool, // older than age to prove in years?
+  publicOutput: ProofOutput, // defined above
   methods: {
     proveAge: {
       privateInputs: [
@@ -28,7 +34,7 @@ export const proofOfAge = Experimental.ZkProgram({
         ageToProveInYears: Field,
         personalData: PersonalData,
         signature: Signature
-      ): Bool {
+      ): ProofOutput {
         // verify zkOracle data
         const oraclePuclicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
@@ -51,7 +57,10 @@ export const proofOfAge = Experimental.ZkProgram({
           .greaterThan(dateOfBirth);
         olderThanAgeToProve.assertTrue();
 
-        return olderThanAgeToProve;
+        return new ProofOutput({
+          olderThanAgeToProve: olderThanAgeToProve,
+          currentDate: personalData.currentDate,
+        });
       },
     },
   },
@@ -65,7 +74,7 @@ export class ProofOfAgeProof extends Experimental.ZkProgram.Proof(proofOfAge) {}
 
 export class ProofOfAge extends SmartContract {
   events = {
-    'provided-valid-proof-with-age': Field,
+    'provided-valid-proof': Field,
   };
   init() {
     super.init();
@@ -84,6 +93,6 @@ export class ProofOfAge extends SmartContract {
     // emit an event with number of years to be able to query it via archive nodes
 
     // surely events are not designed for this, but it will do the trick..?
-    this.emitEvent('provided-valid-proof-with-age', proof.publicInput);
+    this.emitEvent('provided-valid-proof', proof.publicInput);
   }
 }

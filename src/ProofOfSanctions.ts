@@ -18,7 +18,7 @@ import { verifyOracleData } from './ProofOfSanctions.utils.js';
 export class PublicInput extends Struct({
   isMatched: Bool,
   minScore: Field,
-  currentDate: CircuitString,
+  currentDate: Field,
 }) {}
 
 export const proofOfSanctions = Experimental.ZkProgram({
@@ -56,7 +56,7 @@ export class ProofOfSanctionsProof extends Experimental.ZkProgram.Proof(
 
 export class ProofOfSanctions extends SmartContract {
   events = {
-    'provided-valid-proof-with-sanctions-match': Field,
+    'provided-valid-proof': Field,
   };
   init() {
     super.init();
@@ -75,9 +75,6 @@ export class ProofOfSanctions extends SmartContract {
     // emit an event with min score to be able to query it via archive nodes
 
     // surely events are not designed for this, but it will do the trick..?
-    this.emitEvent(
-      'provided-valid-proof-with-sanctions-match',
-      proof.publicOutput
-    );
+    this.emitEvent('provided-valid-proof', proof.publicOutput);
   }
 }
