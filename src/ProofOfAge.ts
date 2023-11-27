@@ -1,7 +1,6 @@
 import {
   Field,
   method,
-  Experimental,
   Signature,
   CircuitString,
   Bool,
@@ -12,6 +11,7 @@ import {
   Permissions,
   PublicKey,
   Struct,
+  ZkProgram,
 } from 'o1js';
 
 import { PersonalData, parseDateFromPNO } from './ProofOfAge.utils.js';
@@ -21,7 +21,8 @@ class ProofOutput extends Struct({
   currentDate: Field,
 }) {}
 
-export const proofOfAge = Experimental.ZkProgram({
+export const proofOfAge = ZkProgram({
+  name: 'ZkProofOfAge',
   publicInput: Field, // ageToProveInYears
   publicOutput: ProofOutput, // defined above
   methods: {
@@ -70,7 +71,7 @@ export const proofOfAge = Experimental.ZkProgram({
 Use the zkPragram defined above to create an on-chain smart contract that
 consume the proof created by the program above and thus 'put' the proof on chain
 */
-export class ProofOfAgeProof extends Experimental.ZkProgram.Proof(proofOfAge) {}
+export class ProofOfAgeProof extends ZkProgram.Proof(proofOfAge) {}
 
 export class ProofOfAge extends SmartContract {
   events = {

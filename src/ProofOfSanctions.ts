@@ -1,7 +1,6 @@
 import {
   Field,
   method,
-  Experimental,
   Signature,
   CircuitString,
   Bool,
@@ -11,6 +10,7 @@ import {
   Provable,
   Permissions,
   Struct,
+  ZkProgram,
 } from 'o1js';
 
 import { verifyOracleData } from './ProofOfSanctions.utils.js';
@@ -21,7 +21,8 @@ export class PublicInput extends Struct({
   currentDate: Field,
 }) {}
 
-export const proofOfSanctions = Experimental.ZkProgram({
+export const proofOfSanctions = ZkProgram({
+  name: 'proofOfSanctions',
   publicInput: PublicInput, // defined above
   publicOutput: Field, // isMatched
   methods: {
@@ -50,9 +51,7 @@ export const proofOfSanctions = Experimental.ZkProgram({
 Use the zkPragram defined above to create an on-chain smart contract that
 consume the proof created by the program above and thus 'put' the proof on chain
 */
-export class ProofOfSanctionsProof extends Experimental.ZkProgram.Proof(
-  proofOfSanctions
-) {}
+export class ProofOfSanctionsProof extends ZkProgram.Proof(proofOfSanctions) {}
 
 export class ProofOfSanctions extends SmartContract {
   events = {

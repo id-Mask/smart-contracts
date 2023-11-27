@@ -15,16 +15,19 @@ import {
   CircuitString,
   Signature,
   JsonProof,
+  Cache,
 } from 'o1js';
 
 describe('ProofOfAge', () => {
   beforeAll(async () => {
+    // cache
+    const cache: Cache = Cache.FileSystem('./cache');
     // zkProgram that produce the proof that
     // is submitted to the on chain program
-    await proofOfAge.compile();
+    await proofOfAge.compile({ cache });
     // on chain smart contract that consume the
     // proof create by the zkProgram compiled above
-    await ProofOfAge.compile();
+    await ProofOfAge.compile({ cache });
   });
 
   // beforeEach(() => {});
