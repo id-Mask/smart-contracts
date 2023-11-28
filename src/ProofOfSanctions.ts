@@ -2,12 +2,8 @@ import {
   Field,
   method,
   Signature,
-  CircuitString,
   Bool,
   SmartContract,
-  State,
-  state,
-  Provable,
   Permissions,
   Struct,
   ZkProgram,
@@ -21,16 +17,21 @@ export class PublicInput extends Struct({
   currentDate: Field,
 }) {}
 
+class PublicOutput extends Struct({
+  minScore: Field,
+  currentDate: Field,
+}) {}
+
 export const proofOfSanctions = ZkProgram({
   name: 'proofOfSanctions',
   publicInput: PublicInput, // defined above
-  publicOutput: Field, // isMatched
+  publicOutput: PublicOutput, // defined above
   methods: {
     proveSanctions: {
       privateInputs: [
         Signature, // zkOracle data signature
       ],
-      method(publicInput: PublicInput, signature: Signature): Field {
+      method(publicInput: PublicInput, signature: Signature): PublicOutput {
         // verity zkOracle data
         const verified = verifyOracleData(
           publicInput.isMatched,
@@ -41,7 +42,11 @@ export const proofOfSanctions = ZkProgram({
         verified.assertTrue();
         // assert that search agains OFAC db yielded no results
         publicInput.isMatched.assertFalse();
-        return publicInput.minScore;
+
+        return new PublicOutput({
+          minScore: publicInput.minScore,
+          currentDate: publicInput.currentDate,
+        });
       },
     },
   },
@@ -55,7 +60,7 @@ export class ProofOfSanctionsProof extends ZkProgram.Proof(proofOfSanctions) {}
 
 export class ProofOfSanctions extends SmartContract {
   events = {
-    'provided-valid-proof': Field,
+    'provided-valid-proof': PublicOutput,
   };
   init() {
     super.init();
@@ -66,7 +71,7 @@ export class ProofOfSanctions extends SmartContract {
   }
   @method verifyProof(proof: ProofOfSanctionsProof) {
     // if the proof is invalid, this will fail
-    // its impossible to run past this withought a valid proof
+    // its impossible to run past this without a valid proof
     proof.verify();
 
     // the above is enough to be able to check if an address has a proof

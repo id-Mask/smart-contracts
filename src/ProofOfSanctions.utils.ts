@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Field, PublicKey, PrivateKey, Signature, Circuit, Bool } from 'o1js';
+import { Field, PublicKey, PrivateKey, Signature, Bool } from 'o1js';
 
 const verifyOracleData = (
   isMatched: Bool,

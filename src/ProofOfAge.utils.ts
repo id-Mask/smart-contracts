@@ -1,12 +1,10 @@
 import 'dotenv/config';
 import {
   Field,
-  PublicKey,
   PrivateKey,
   Signature,
   CircuitString,
   Circuit,
-  Bool,
   Struct,
 } from 'o1js';
 

@@ -1,22 +1,9 @@
 import fs from 'fs/promises';
 import { proofOfAge, ProofOfAge } from './ProofOfAge.js';
 
-import {
-  zkOracleResponseMock,
-  parseDateFromPNO,
-  PersonalData,
-} from './ProofOfAge.utils.js';
+import { zkOracleResponseMock, PersonalData } from './ProofOfAge.utils.js';
 
-import {
-  Field,
-  Mina,
-  PrivateKey,
-  PublicKey,
-  AccountUpdate,
-  CircuitString,
-  Signature,
-  JsonProof,
-} from 'o1js';
+import { Field, Mina, PrivateKey, CircuitString, Signature } from 'o1js';
 
 // check command line arg
 let deployAlias = process.argv[2];

@@ -12,20 +12,7 @@ https://discord.com/channels/484437221055922177/1125872479030747136/112587589630
 https://discord.com/channels/484437221055922177/1080552939313184859/1080598740890562691
 */
 
-import {
-  Field,
-  Bool,
-  method,
-  Experimental,
-  SmartContract,
-  PrivateKey,
-  PublicKey,
-  AccountUpdate,
-  Provable,
-  Mina,
-  Struct,
-  CircuitString,
-} from 'o1js';
+import { Field, Bool, Experimental, Struct, CircuitString } from 'o1js';
 
 class zkProofOutput extends Struct({
   proofValid: Bool,

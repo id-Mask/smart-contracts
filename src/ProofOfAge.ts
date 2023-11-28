@@ -2,12 +2,8 @@ import {
   Field,
   method,
   Signature,
-  CircuitString,
   Bool,
   SmartContract,
-  State,
-  state,
-  Provable,
   Permissions,
   PublicKey,
   Struct,
@@ -16,7 +12,7 @@ import {
 
 import { PersonalData, parseDateFromPNO } from './ProofOfAge.utils.js';
 
-class ProofOutput extends Struct({
+class PublicOutput extends Struct({
   olderThanAgeToProve: Bool,
   currentDate: Field,
 }) {}
@@ -24,7 +20,7 @@ class ProofOutput extends Struct({
 export const proofOfAge = ZkProgram({
   name: 'ZkProofOfAge',
   publicInput: Field, // ageToProveInYears
-  publicOutput: ProofOutput, // defined above
+  publicOutput: PublicOutput, // defined above
   methods: {
     proveAge: {
       privateInputs: [
@@ -35,7 +31,7 @@ export const proofOfAge = ZkProgram({
         ageToProveInYears: Field,
         personalData: PersonalData,
         signature: Signature
-      ): ProofOutput {
+      ): PublicOutput {
         // verify zkOracle data
         const oraclePuclicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
@@ -58,7 +54,7 @@ export const proofOfAge = ZkProgram({
           .greaterThan(dateOfBirth);
         olderThanAgeToProve.assertTrue();
 
-        return new ProofOutput({
+        return new PublicOutput({
           olderThanAgeToProve: olderThanAgeToProve,
           currentDate: personalData.currentDate,
         });
@@ -75,7 +71,7 @@ export class ProofOfAgeProof extends ZkProgram.Proof(proofOfAge) {}
 
 export class ProofOfAge extends SmartContract {
   events = {
-    'provided-valid-proof': Field,
+    'provided-valid-proof': PublicOutput,
   };
   init() {
     super.init();
@@ -94,6 +90,6 @@ export class ProofOfAge extends SmartContract {
     // emit an event with number of years to be able to query it via archive nodes
 
     // surely events are not designed for this, but it will do the trick..?
-    this.emitEvent('provided-valid-proof', proof.publicInput);
+    this.emitEvent('provided-valid-proof', proof.publicOutput);
   }
 }
