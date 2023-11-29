@@ -20,16 +20,19 @@ import {
   Signature,
   JsonProof,
   Bool,
+  Cache,
 } from 'o1js';
 
 describe('ProofOfSanctions', () => {
   beforeAll(async () => {
+    // cache
+    const cache: Cache = Cache.FileSystem('./cache');
     // zkProgram that produce the proof that
     // is submitted to the on chain program
-    await proofOfSanctions.compile();
+    await proofOfSanctions.compile({ cache });
     // on chain smart contract that consume the
     // proof create by the zkProgram compiled above
-    await ProofOfSanctions.compile();
+    await ProofOfSanctions.compile({ cache });
   });
 
   // beforeEach(() => {});

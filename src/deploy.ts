@@ -12,10 +12,14 @@ https://discord.com/channels/484437221055922177/1151810908331450398/115181090833
 Solution: https://discord.com/channels/484437221055922177/1047214314349658172/threads/1167472139574714599
 */
 
-import { PrivateKey, Mina, AccountUpdate, UInt32, fetchAccount } from 'o1js';
-import { readFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import {
+  PrivateKey,
+  Mina,
+  AccountUpdate,
+  UInt32,
+  fetchAccount,
+  Cache,
+} from 'o1js';
 import fs from 'fs/promises';
 
 import { proofOfAge, ProofOfAge } from './ProofOfAge.js';
@@ -87,7 +91,8 @@ await fetchAccount({ publicKey: feePayerAddress });
 
 // compile
 console.log('compile the contracts...');
-await proofs[deployAlias].zkProgram.compile();
+const cache = Cache.FileSystem('./cache');
+await proofs[deployAlias].zkProgram.compile({ cache: cache });
 const { verificationKey } = await proofs[deployAlias].smartContract.compile();
 const zkApp = new proofs[deployAlias].smartContract(zkAppAddress);
 

@@ -2,7 +2,7 @@
   "version": 1,
   "deployAliases": {
     "ProofOfAge": {
-      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "url": "https://api.minascan.io/node/berkeley/v1/graphql",
       "keyPath": "keys/ProofOfAge.json",
       "feepayerKeyPath": "/home/raidas/.cache/zkapp-cli/keys/berkeley_alias.json",
       "feepayerAlias": "berkeley_alias",
@@ -10,7 +10,7 @@
       "smartContract": "ProofOfAge"
     },
     "ProofOfSanctions": {
-      "url": "https://proxy.berkeley.minaexplorer.com/graphql",
+      "url": "https://api.minascan.io/node/berkeley/v1/graphql",
       "keyPath": "keys/ProofOfSanctions.json",
       "feepayerKeyPath": "/home/raidas/.cache/zkapp-cli/keys/berkeley_alias.json",
       "feepayerAlias": "berkeley_alias",
