@@ -1,6 +1,7 @@
 # TypeScript files
 src
 cache
+.env
 
 # Editor
 .vscode
