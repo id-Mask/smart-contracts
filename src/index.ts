@@ -9,12 +9,21 @@ import {
   ProofOfSanctionsProof,
 } from './ProofOfSanctions.js';
 
+import {
+  proofOfUniqueHuman,
+  ProofOfUniqueHuman,
+  ProofOfUniqueHumanProof,
+} from './ProofOfUniqueHuman.js';
+
 export {
+  PersonalData,
   proofOfAge,
   ProofOfAge,
   ProofOfAgeProof,
-  PersonalData,
   proofOfSanctions,
   ProofOfSanctions,
   ProofOfSanctionsProof,
+  proofOfUniqueHuman,
+  ProofOfUniqueHuman,
+  ProofOfUniqueHumanProof,
 };
