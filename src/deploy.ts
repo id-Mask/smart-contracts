@@ -12,18 +12,15 @@ https://discord.com/channels/484437221055922177/1151810908331450398/115181090833
 Solution: https://discord.com/channels/484437221055922177/1047214314349658172/threads/1167472139574714599
 */
 
-import {
-  PrivateKey,
-  Mina,
-  AccountUpdate,
-  UInt32,
-  fetchAccount,
-  Cache,
-} from 'o1js';
+import { PrivateKey, Mina, AccountUpdate, fetchAccount, Cache } from 'o1js';
 import fs from 'fs/promises';
 
 import { proofOfAge, ProofOfAge } from './ProofOfAge.js';
 import { proofOfSanctions, ProofOfSanctions } from './ProofOfSanctions.js';
+import {
+  proofOfUniqueHuman,
+  ProofOfUniqueHuman,
+} from './ProofOfUniqueHuman.js';
 
 // proofs map
 interface Proofs {
@@ -31,10 +28,17 @@ interface Proofs {
 }
 
 const proofs: Proofs = {
-  ProofOfAge: { zkProgram: proofOfAge, smartContract: ProofOfAge },
+  ProofOfAge: {
+    zkProgram: proofOfAge,
+    smartContract: ProofOfAge,
+  },
   ProofOfSanctions: {
     zkProgram: proofOfSanctions,
     smartContract: ProofOfSanctions,
+  },
+  ProofOfUniqueHuman: {
+    zkProgram: proofOfUniqueHuman,
+    smartContract: ProofOfUniqueHuman,
   },
 };
 
@@ -111,7 +115,6 @@ let tx = await Mina.transaction({ sender: feePayerAddress, fee: fee }, () => {
   update.account.verificationKey.set(verificationKey);
   update.account.zkappUri.set('https://idmask.xyz');
   update.sign(zkAppKey);
-  // update.account.nonce.assertEquals(UInt32.from(1));
 });
 
 console.log('before sending');
