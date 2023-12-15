@@ -82,7 +82,7 @@ describe('ProofOfAge', () => {
     );
     const proofJson = proof.toJSON();
     expect(proofJson.publicInput[0]).toBe(ageToProveInYears.toString());
-    expect(proofJson.publicOutput[0]).toBe('1');
+    expect(proofJson.publicOutput[0]).toBe(ageToProveInYears.toString());
     expect(proofJson.publicOutput[1]).toBe('20231024');
     // console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);
   });

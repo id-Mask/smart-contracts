@@ -2,7 +2,6 @@ import {
   Field,
   method,
   Signature,
-  Bool,
   SmartContract,
   Permissions,
   PublicKey,
@@ -13,7 +12,7 @@ import {
 import { PersonalData, parseDateFromPNO } from './ProofOfAge.utils.js';
 
 class PublicOutput extends Struct({
-  olderThanAgeToProve: Bool,
+  ageToProveInYears: Field,
   currentDate: Field,
 }) {}
 
@@ -55,7 +54,7 @@ export const proofOfAge = ZkProgram({
         olderThanAgeToProve.assertTrue();
 
         return new PublicOutput({
-          olderThanAgeToProve: olderThanAgeToProve,
+          ageToProveInYears: ageToProveInYears,
           currentDate: personalData.currentDate,
         });
       },
