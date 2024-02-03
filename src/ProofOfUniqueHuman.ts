@@ -19,7 +19,7 @@ class PublicOutput extends Struct({
 }) {}
 
 export const proofOfUniqueHuman = ZkProgram({
-  name: 'proofOfUniqueHuman',
+  name: 'ZkProofOfUniqueHuman',
   publicInput: undefined,
   publicOutput: PublicOutput,
   methods: {

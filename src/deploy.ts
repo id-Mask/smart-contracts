@@ -90,7 +90,8 @@ const fee = Number(config.fee) * 1e9;
 Mina.setActiveInstance(Network);
 
 // fetch to get all the account data including nonce?
-await fetchAccount({ publicKey: zkAppAddress });
+let { account, error } = await fetchAccount({ publicKey: zkAppAddress });
+console.log(account, error);
 await fetchAccount({ publicKey: feePayerAddress });
 
 // compile

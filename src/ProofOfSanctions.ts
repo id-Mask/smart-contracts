@@ -23,7 +23,7 @@ class PublicOutput extends Struct({
 }) {}
 
 export const proofOfSanctions = ZkProgram({
-  name: 'proofOfSanctions',
+  name: 'ZkProofOfSanctions',
   publicInput: PublicInput, // defined above
   publicOutput: PublicOutput, // defined above
   methods: {
