@@ -1,4 +1,4 @@
-const URL = 'https://berkeley.graphql.minaexplorer.com/';
+const URL = 'https://proxy.berkeley.minaexplorer.com/graphql';
 const ZKAPPKEY = 'B62qqpAFkz374qJpuFKYZPjT1KxSmnLoY4zEc878FaW4DSxgYNXZiny';
 
 /*
@@ -13,33 +13,12 @@ const getAllProofs = async () => {
     },
     body: JSON.stringify({
       query: `
-        query MyQuery {
-          events(query: {
-            zkAppCommandHash: {
-              zkappCommand: {
-                accountUpdates: {
-                  body: {publicKey: "${ZKAPPKEY}"}
-                },
-                feePayer: {}
-              }
-            },
-            canonical: true
-          }) {
-            blockHeight
-            canonical
-            dateTime
-            event
-            zkAppCommandHash {
-              zkappCommand {
-                feePayer {
-                  body {
-                    publicKey
-                  }
-                }
-              }
-            }
-          }
+      query MyQuery {
+        transactions(query: {from: "B62qqgtZqqnDr7BzyNnYguqnHQnpMDyTSEYfWj4r1qkEYcfvszkp8zt"}) {
+          id
         }
+      }
+      
       `,
     }),
   });
