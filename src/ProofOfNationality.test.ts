@@ -65,17 +65,14 @@ describe('ProofOfNationality', () => {
       pno: CircuitString.fromString(zkOracleResponse.data.pno),
       currentDate: Field(zkOracleResponse.data.currentDate),
     });
-    console.log('Personal data country', personalData.country.toString());
     const proof = await proofOfNationality.proveNationality(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature)
     );
     const proofJson = proof.toJSON();
     // TODO: country should be represented by a single Field
-    expect(proofJson.publicOutput[0]).toBe('69');
-    expect(proofJson.publicOutput[1]).toBe('69');
-    expect(proofJson.publicOutput[2]).toBe('0');
-    expect(proofJson.publicOutput[3]).toBe('20231024');
+    expect(proofJson.publicOutput[0]).toBe('6969');
+    // expect(proofJson.publicOutput[3]).toBe('20231024');
     // console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);
   });
 

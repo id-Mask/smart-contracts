@@ -7,13 +7,13 @@ import {
   PublicKey,
   Struct,
   ZkProgram,
+  Provable,
 } from 'o1js';
 
 import { PersonalData } from './ProofOfAge.utils.js';
-import { IntToCountryCodeAlpha2Map } from './ProofOfNationality.utils.js';
 
 class PublicOutput extends Struct({
-  nationality: [Field, Field, Field],
+  nationality: Field,
   currentDate: Field,
 }) {}
 
@@ -39,18 +39,16 @@ export const proofOfNationality = ZkProgram({
         validSignature.assertTrue();
 
         /*
-        Nationality is expressed as an array of ints/fields 
-        that are mapped to country codes: https://asecuritysite.com/coding/asc2
+          Nationality is expressed as a single Field element which can be mapped
+          back to 2 letter country code: https://asecuritysite.com/coding/asc2
+          see utils file for details
         */
-
-        // TODO: use IntToCountryCodeAlpha2Map to map to single Field not an array of Fields
-        const nationalityFields = personalData.country.toFields();
-        while (nationalityFields.length < 3) {
-          nationalityFields.push(Field(0));
-        }
+        const firstChar = personalData.country.values[0].value;
+        const secondChar = personalData.country.values[1].value;
+        const nationality = firstChar.mul(100).add(secondChar);
 
         return new PublicOutput({
-          nationality: nationalityFields,
+          nationality: nationality,
           currentDate: personalData.currentDate,
         });
       },
