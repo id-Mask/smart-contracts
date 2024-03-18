@@ -14,6 +14,7 @@ import { PersonalData, parseDateFromPNO } from './ProofOfAge.utils.js';
 class PublicOutput extends Struct({
   ageToProveInYears: Field,
   currentDate: Field,
+  creatorPublicKey: PublicKey,
 }) {}
 
 export const proofOfAge = ZkProgram({
@@ -25,21 +26,46 @@ export const proofOfAge = ZkProgram({
       privateInputs: [
         PersonalData,
         Signature, // zkOracle data signature
+        Signature, // creator wallet signature
+        PublicKey, // creator wallet public key
       ],
       method(
         ageToProveInYears: Field,
         personalData: PersonalData,
-        signature: Signature
+        oracleSignature: Signature,
+        creatorSignature: Signature,
+        creatorPublicKey: PublicKey
       ): PublicOutput {
-        // verify zkOracle data
-        const oraclePuclicKey = PublicKey.fromBase58(
-          'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
-        );
-        const validSignature = signature.verify(
-          oraclePuclicKey,
+        /*
+          Verify zk-oracle signature
+
+          Purpose: verify the zk-oracle signature, ensuring that the data remains 
+          untampered with and aligns precisely with the information provided by 
+          the KYC/digital ID provider.
+        */
+        const validSignature = oracleSignature.verify(
+          PublicKey.fromBase58(
+            'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
+          ),
           personalData.toFields()
         );
         validSignature.assertTrue();
+
+        /*
+          Verify creatorSignature
+
+          Purpose: This section validates the creatorSignature to embed the public key 
+          of the proof creator into the proof output. The rationale behind this inclusion 
+          is to enable the party consuming the proof to optionally request the user to 
+          confirm possession of the same address. This confirmation can be achieved by 
+          prompting the user to sign a superficial message and provide evidence of ownership 
+          of the corresponding account.
+        */
+        const validSignature_ = creatorSignature.verify(
+          creatorPublicKey,
+          personalData.toFields()
+        );
+        validSignature_.assertTrue();
 
         // parse date of birth from pno
         const dateOfBirth = parseDateFromPNO(personalData.pno);
@@ -56,6 +82,7 @@ export const proofOfAge = ZkProgram({
         return new PublicOutput({
           ageToProveInYears: ageToProveInYears,
           currentDate: personalData.currentDate,
+          creatorPublicKey: creatorPublicKey,
         });
       },
     },

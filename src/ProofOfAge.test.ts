@@ -75,15 +75,31 @@ describe('ProofOfAge', () => {
       pno: CircuitString.fromString(zkOracleResponse.data.pno),
       currentDate: Field(zkOracleResponse.data.currentDate),
     });
+
+    const creatorPrivateKey = PrivateKey.random();
+    const creatorPublicKey = creatorPrivateKey.toPublicKey();
+    const creatorDataSignature = Signature.create(
+      creatorPrivateKey,
+      personalData.toFields()
+    );
+
     const proof = await proofOfAge.proveAge(
       Field(ageToProveInYears),
       personalData,
-      Signature.fromJSON(zkOracleResponse.signature)
+      Signature.fromJSON(zkOracleResponse.signature),
+      creatorDataSignature,
+      creatorPublicKey
     );
     const proofJson = proof.toJSON();
     expect(proofJson.publicInput[0]).toBe(ageToProveInYears.toString());
     expect(proofJson.publicOutput[0]).toBe(ageToProveInYears.toString());
     expect(proofJson.publicOutput[1]).toBe('20231024');
+    expect(
+      PublicKey.fromFields([
+        Field(proofJson.publicOutput[2]),
+        Field(proofJson.publicOutput[3]),
+      ]).toBase58()
+    ).toBe(creatorPublicKey.toBase58());
     // console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);
   });
 
@@ -142,10 +158,20 @@ describe('ProofOfAge', () => {
       pno: CircuitString.fromString(zkOracleResponse.data.pno),
       currentDate: Field(zkOracleResponse.data.currentDate),
     });
+
+    const creatorPrivateKey = PrivateKey.random();
+    const creatorPublicKey = creatorPrivateKey.toPublicKey();
+    const creatorDataSignature = Signature.create(
+      creatorPrivateKey,
+      personalData.toFields()
+    );
+
     const proof = await proofOfAge.proveAge(
       Field(ageToProveInYears),
       personalData,
-      Signature.fromJSON(zkOracleResponse.signature)
+      Signature.fromJSON(zkOracleResponse.signature),
+      creatorDataSignature,
+      creatorPublicKey
     );
     const proofJson = proof.toJSON();
 
