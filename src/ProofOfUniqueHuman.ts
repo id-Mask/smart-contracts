@@ -16,6 +16,7 @@ import { PersonalData } from './ProofOfAge.utils.js';
 class PublicOutput extends Struct({
   hash: Field,
   currentDate: Field,
+  creatorPublicKey: PublicKey,
 }) {}
 
 export const proofOfUniqueHuman = ZkProgram({
@@ -24,12 +25,21 @@ export const proofOfUniqueHuman = ZkProgram({
   publicOutput: PublicOutput,
   methods: {
     proveUniqueHuman: {
-      privateInputs: [PersonalData, Signature, CircuitString, Signature],
+      privateInputs: [
+        PersonalData,
+        Signature, // zkOracle data signature
+        CircuitString, // unique secret value
+        Signature, // signature of unique secret value
+        Signature, // creator wallet signature
+        PublicKey, // creator wallet public key
+      ],
       method(
         personalData: PersonalData,
         personalDataSignature: Signature,
         secretValue: CircuitString,
-        secretValueSignature: Signature
+        secretValueSignature: Signature,
+        creatorSignature: Signature,
+        creatorPublicKey: PublicKey
       ): PublicOutput {
         const oraclePuclicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
@@ -59,6 +69,13 @@ export const proofOfUniqueHuman = ZkProgram({
         );
         verified_.assertTrue();
 
+        // verify creator signature
+        const validSignature_ = creatorSignature.verify(
+          creatorPublicKey,
+          personalData.toFields()
+        );
+        validSignature_.assertTrue();
+
         // create hash unique to this person
         const hash = Poseidon.hash([
           ...personalData.name.toFields(),
@@ -70,6 +87,7 @@ export const proofOfUniqueHuman = ZkProgram({
         return new PublicOutput({
           hash: hash,
           currentDate: personalData.currentDate,
+          creatorPublicKey: creatorPublicKey,
         });
       },
     },

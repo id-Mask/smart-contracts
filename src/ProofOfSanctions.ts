@@ -7,6 +7,7 @@ import {
   Permissions,
   Struct,
   ZkProgram,
+  PublicKey,
 } from 'o1js';
 
 import { verifyOracleData } from './ProofOfSanctions.utils.js';
@@ -15,11 +16,16 @@ export class PublicInput extends Struct({
   isMatched: Bool,
   minScore: Field,
   currentDate: Field,
-}) {}
+}) {
+  toFields(): Field[] {
+    return [this.isMatched.toField(), this.minScore, this.currentDate];
+  }
+}
 
 class PublicOutput extends Struct({
   minScore: Field,
   currentDate: Field,
+  creatorPublicKey: PublicKey,
 }) {}
 
 export const proofOfSanctions = ZkProgram({
@@ -30,8 +36,15 @@ export const proofOfSanctions = ZkProgram({
     proveSanctions: {
       privateInputs: [
         Signature, // zkOracle data signature
+        Signature, // creator wallet signature
+        PublicKey, // creator wallet public key
       ],
-      method(publicInput: PublicInput, signature: Signature): PublicOutput {
+      method(
+        publicInput: PublicInput,
+        signature: Signature,
+        creatorSignature: Signature,
+        creatorPublicKey: PublicKey
+      ): PublicOutput {
         // verity zkOracle data
         const verified = verifyOracleData(
           publicInput.isMatched,
@@ -40,12 +53,21 @@ export const proofOfSanctions = ZkProgram({
           signature
         );
         verified.assertTrue();
+
+        // verify creator signature
+        const validSignature_ = creatorSignature.verify(
+          creatorPublicKey,
+          publicInput.toFields()
+        );
+        validSignature_.assertTrue();
+
         // assert that search agains OFAC db yielded no results
         publicInput.isMatched.assertFalse();
 
         return new PublicOutput({
           minScore: publicInput.minScore,
           currentDate: publicInput.currentDate,
+          creatorPublicKey: creatorPublicKey,
         });
       },
     },

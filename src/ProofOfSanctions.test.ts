@@ -65,15 +65,33 @@ describe('ProofOfSanctions', () => {
       minScore: Field(zkOracleResponse.data.minScore),
       currentDate: Field(zkOracleResponse.data.currentDate),
     });
+
+    const creatorPrivateKey = PrivateKey.random();
+    const creatorPublicKey = creatorPrivateKey.toPublicKey();
+    const creatorDataSignature = Signature.create(
+      creatorPrivateKey,
+      publicInput.toFields()
+    );
+
     const proof = await proofOfSanctions.proveSanctions(
       publicInput,
-      Signature.fromJSON(zkOracleResponse.signature)
+      Signature.fromJSON(zkOracleResponse.signature),
+      creatorDataSignature,
+      creatorPublicKey
     );
     const proofJson = proof.toJSON();
-    // console.log(JSON.stringify(proofJson, null, 2));
     expect(proofJson.publicOutput[0]).toBe(
       zkOracleResponse.data.minScore.toString()
     );
+    expect(proofJson.publicOutput[1]).toBe(
+      zkOracleResponse.data.currentDate.toString()
+    );
+    expect(
+      PublicKey.fromFields([
+        Field(proofJson.publicOutput[2]),
+        Field(proofJson.publicOutput[3]),
+      ]).toBase58()
+    ).toBe(creatorPublicKey.toBase58());
     // console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);
   });
 
@@ -129,9 +147,19 @@ describe('ProofOfSanctions', () => {
       minScore: Field(zkOracleResponse.data.minScore),
       currentDate: Field(zkOracleResponse.data.currentDate),
     });
+
+    const creatorPrivateKey = PrivateKey.random();
+    const creatorPublicKey = creatorPrivateKey.toPublicKey();
+    const creatorDataSignature = Signature.create(
+      creatorPrivateKey,
+      publicInput.toFields()
+    );
+
     const proof = await proofOfSanctions.proveSanctions(
       publicInput,
-      Signature.fromJSON(zkOracleResponse.signature)
+      Signature.fromJSON(zkOracleResponse.signature),
+      creatorDataSignature,
+      creatorPublicKey
     );
     const proofJson = proof.toJSON();
 

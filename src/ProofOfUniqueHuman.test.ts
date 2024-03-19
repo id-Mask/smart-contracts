@@ -72,16 +72,31 @@ describe('ProofOfUniqueHuman', () => {
     const mockSecret = getMockSecretValue();
     const secretValue = CircuitString.fromString(mockSecret.secret);
 
+    const creatorPrivateKey = PrivateKey.random();
+    const creatorPublicKey = creatorPrivateKey.toPublicKey();
+    const creatorDataSignature = Signature.create(
+      creatorPrivateKey,
+      personalData.toFields()
+    );
+
     const proof = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature),
       secretValue,
-      Signature.fromJSON(mockSecret.signature)
+      Signature.fromJSON(mockSecret.signature),
+      creatorDataSignature,
+      creatorPublicKey
     );
     const proofJson = proof.toJSON();
     proof.verify();
     // console.log(`Unique value: ${proofJson.publicOutput[0]}`)
     expect(proofJson.publicOutput[1]).toBe('20231024');
+    expect(
+      PublicKey.fromFields([
+        Field(proofJson.publicOutput[2]),
+        Field(proofJson.publicOutput[3]),
+      ]).toBase58()
+    ).toBe(creatorPublicKey.toBase58());
   });
 
   /*
@@ -141,11 +156,20 @@ describe('ProofOfUniqueHuman', () => {
     const mockSecret = getMockSecretValue();
     const secretValue = CircuitString.fromString(mockSecret.secret);
 
+    const creatorPrivateKey = PrivateKey.random();
+    const creatorPublicKey = creatorPrivateKey.toPublicKey();
+    const creatorDataSignature = Signature.create(
+      creatorPrivateKey,
+      personalData.toFields()
+    );
+
     const proof = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature),
       secretValue,
-      Signature.fromJSON(mockSecret.signature)
+      Signature.fromJSON(mockSecret.signature),
+      creatorDataSignature,
+      creatorPublicKey
     );
     const proofJson = proof.toJSON();
 

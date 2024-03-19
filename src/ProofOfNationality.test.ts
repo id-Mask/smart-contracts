@@ -65,14 +65,29 @@ describe('ProofOfNationality', () => {
       pno: CircuitString.fromString(zkOracleResponse.data.pno),
       currentDate: Field(zkOracleResponse.data.currentDate),
     });
+
+    const creatorPrivateKey = PrivateKey.random();
+    const creatorPublicKey = creatorPrivateKey.toPublicKey();
+    const creatorDataSignature = Signature.create(
+      creatorPrivateKey,
+      personalData.toFields()
+    );
+
     const proof = await proofOfNationality.proveNationality(
       personalData,
-      Signature.fromJSON(zkOracleResponse.signature)
+      Signature.fromJSON(zkOracleResponse.signature),
+      creatorDataSignature,
+      creatorPublicKey
     );
     const proofJson = proof.toJSON();
-    // TODO: country should be represented by a single Field
     expect(proofJson.publicOutput[0]).toBe('6969');
-    // expect(proofJson.publicOutput[3]).toBe('20231024');
+    expect(proofJson.publicOutput[1]).toBe('20231024');
+    expect(
+      PublicKey.fromFields([
+        Field(proofJson.publicOutput[2]),
+        Field(proofJson.publicOutput[3]),
+      ]).toBase58()
+    ).toBe(creatorPublicKey.toBase58());
     // console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);
   });
 
@@ -130,9 +145,19 @@ describe('ProofOfNationality', () => {
       pno: CircuitString.fromString(zkOracleResponse.data.pno),
       currentDate: Field(zkOracleResponse.data.currentDate),
     });
+
+    const creatorPrivateKey = PrivateKey.random();
+    const creatorPublicKey = creatorPrivateKey.toPublicKey();
+    const creatorDataSignature = Signature.create(
+      creatorPrivateKey,
+      personalData.toFields()
+    );
+
     const proof = await proofOfNationality.proveNationality(
       personalData,
-      Signature.fromJSON(zkOracleResponse.signature)
+      Signature.fromJSON(zkOracleResponse.signature),
+      creatorDataSignature,
+      creatorPublicKey
     );
     const proofJson = proof.toJSON();
 
@@ -145,8 +170,5 @@ describe('ProofOfNationality', () => {
     });
     await txn.prove();
     await txn.sign([senderKey]).send();
-
-    // const updatedNum = zkApp.num.get();
-    // expect(updatedNum).toEqual(Field(1));
   });
 });

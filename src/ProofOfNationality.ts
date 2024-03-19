@@ -15,6 +15,7 @@ import { PersonalData } from './ProofOfAge.utils.js';
 class PublicOutput extends Struct({
   nationality: Field,
   currentDate: Field,
+  creatorPublicKey: PublicKey,
 }) {}
 
 export const proofOfNationality = ZkProgram({
@@ -26,8 +27,15 @@ export const proofOfNationality = ZkProgram({
       privateInputs: [
         PersonalData,
         Signature, // zkOracle data signature
+        Signature, // creator wallet signature
+        PublicKey, // creator wallet public key
       ],
-      method(personalData: PersonalData, signature: Signature): PublicOutput {
+      method(
+        personalData: PersonalData,
+        signature: Signature,
+        creatorSignature: Signature,
+        creatorPublicKey: PublicKey
+      ): PublicOutput {
         // verify zkOracle data
         const oraclePuclicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
@@ -37,6 +45,13 @@ export const proofOfNationality = ZkProgram({
           personalData.toFields()
         );
         validSignature.assertTrue();
+
+        // verify creator signature
+        const validSignature_ = creatorSignature.verify(
+          creatorPublicKey,
+          personalData.toFields()
+        );
+        validSignature_.assertTrue();
 
         /*
           Nationality is expressed as a single Field element which can be mapped
@@ -50,6 +65,7 @@ export const proofOfNationality = ZkProgram({
         return new PublicOutput({
           nationality: nationality,
           currentDate: personalData.currentDate,
+          creatorPublicKey: creatorPublicKey,
         });
       },
     },

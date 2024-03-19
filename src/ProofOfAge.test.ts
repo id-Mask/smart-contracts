@@ -184,8 +184,5 @@ describe('ProofOfAge', () => {
     });
     await txn.prove();
     await txn.sign([senderKey]).send();
-
-    // const updatedNum = zkApp.num.get();
-    // expect(updatedNum).toEqual(Field(1));
   });
 });
