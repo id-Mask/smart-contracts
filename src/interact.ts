@@ -65,11 +65,21 @@ try {
     pno: CircuitString.fromString(zkOracleResponse.data.pno),
     currentDate: Field(zkOracleResponse.data.currentDate),
   });
+
+  const creatorPrivateKey = PrivateKey.random();
+  const creatorPublicKey = creatorPrivateKey.toPublicKey();
+  const creatorDataSignature = Signature.create(
+    creatorPrivateKey,
+    personalData.toFields()
+  );
+
   const ageToProveInYears = 18;
   const proof = await proofOfAge.proveAge(
     Field(ageToProveInYears),
     personalData,
-    Signature.fromJSON(zkOracleResponse.signature)
+    Signature.fromJSON(zkOracleResponse.signature),
+    creatorDataSignature,
+    creatorPublicKey
   );
 
   let tx = await Mina.transaction({ sender: feepayerAddress, fee }, () => {
