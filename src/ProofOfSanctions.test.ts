@@ -114,18 +114,18 @@ describe('ProofOfSanctions', () => {
   async function localDeploy() {
     // setup local blockchain
     const proofsEnabled = true;
-    const Local = Mina.LocalBlockchain({ proofsEnabled });
+    const Local = await Mina.LocalBlockchain({ proofsEnabled });
     Mina.setActiveInstance(Local);
-    ({ privateKey: deployerKey, publicKey: deployerAccount } =
-      Local.testAccounts[0]);
-    ({ privateKey: senderKey, publicKey: senderAccount } =
-      Local.testAccounts[1]);
+    deployerKey = Local.testAccounts[0].key;
+    deployerAccount = PublicKey.fromPrivateKey(deployerKey);
+    senderKey = Local.testAccounts[0].key;
+    senderAccount = PublicKey.fromPrivateKey(senderKey);
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();
 
     // deploy smart contract
     zkApp = new ProofOfSanctions(zkAppAddress);
-    const txn = await Mina.transaction(deployerAccount, () => {
+    const txn = await Mina.transaction(deployerAccount, async () => {
       AccountUpdate.fundNewAccount(deployerAccount);
       zkApp.deploy();
     });
@@ -164,11 +164,11 @@ describe('ProofOfSanctions', () => {
     const proofJson = proof.toJSON();
 
     // parse zkPorgram proof from JSON
-    const proof_ = ProofOfSanctionsProof.fromJSON(proofJson as JsonProof);
+    const proof_ = await ProofOfSanctionsProof.fromJSON(proofJson as JsonProof);
 
     // update transaction
-    const txn = await Mina.transaction(senderAccount, () => {
-      zkApp.verifyProof(proof_);
+    const txn = await Mina.transaction(senderAccount, async () => {
+      await zkApp.verifyProof(proof_);
     });
     await txn.prove();
     await txn.sign([senderKey]).send();

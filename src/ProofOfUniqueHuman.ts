@@ -33,14 +33,14 @@ export const proofOfUniqueHuman = ZkProgram({
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
       ],
-      method(
+      async method(
         personalData: PersonalData,
         personalDataSignature: Signature,
         secretValue: CircuitString,
         secretValueSignature: Signature,
         creatorSignature: Signature,
         creatorPublicKey: PublicKey
-      ): PublicOutput {
+      ): Promise<PublicOutput> {
         const oraclePuclicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
         );
@@ -65,7 +65,7 @@ export const proofOfUniqueHuman = ZkProgram({
         */
         const verified_ = secretValueSignature.verify(
           oraclePuclicKey,
-          secretValue.toFields()
+          secretValue.values.map((item) => item.toField())
         );
         verified_.assertTrue();
 
@@ -78,10 +78,10 @@ export const proofOfUniqueHuman = ZkProgram({
 
         // create hash unique to this person
         const hash = Poseidon.hash([
-          ...personalData.name.toFields(),
-          ...personalData.surname.toFields(),
-          ...personalData.pno.toFields(),
-          ...secretValue.toFields(),
+          ...personalData.name.values.map((item) => item.toField()),
+          ...personalData.surname.values.map((item) => item.toField()),
+          ...personalData.pno.values.map((item) => item.toField()),
+          ...secretValue.values.map((item) => item.toField()),
         ]);
 
         return new PublicOutput({
@@ -113,16 +113,8 @@ export class ProofOfUniqueHuman extends SmartContract {
       ...Permissions.default(),
     });
   }
-  @method verifyProof(proof: ProofOfUniqueHumanProof) {
-    // if the proof is invalid, this will fail
-    // its impossible to run past this without a valid proof
+  @method async verifyProof(proof: ProofOfUniqueHumanProof) {
     proof.verify();
-
-    // the above is enough to be able to check if an address has a proof
-    // but there needs to be a way to save the min score that is proved
-    // emit an event with min score to be able to query it via archive nodes
-
-    // surely events are not designed for this, but it will do the trick..?
     this.emitEvent('provided-valid-proof', proof.publicOutput);
   }
 }

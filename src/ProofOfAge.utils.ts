@@ -6,6 +6,7 @@ import {
   CircuitString,
   Circuit,
   Struct,
+  Provable,
 } from 'o1js';
 
 class PersonalData extends Struct({
@@ -18,10 +19,10 @@ class PersonalData extends Struct({
   // method for signature creation and verification
   toFields(): Field[] {
     return [
-      ...this.name.toFields(),
-      ...this.surname.toFields(),
-      ...this.country.toFields(),
-      ...this.pno.toFields(),
+      ...this.name.values.map((item) => item.toField()),
+      ...this.surname.values.map((item) => item.toField()),
+      ...this.country.values.map((item) => item.toField()),
+      ...this.pno.values.map((item) => item.toField()),
       this.currentDate,
     ];
   }
@@ -47,12 +48,12 @@ const parseDateFromPNO = (pno: CircuitString): Field => {
   // millenium
   const firstDigit = pno.values[6].value.sub(48);
   let century = Field(18);
-  century = Circuit.if(
+  century = Provable.if(
     firstDigit.greaterThanOrEqual(3),
     century.add(1),
     century
   );
-  century = Circuit.if(
+  century = Provable.if(
     firstDigit.greaterThanOrEqual(5),
     century.add(1),
     century
