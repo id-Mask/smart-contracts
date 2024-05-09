@@ -1,11 +1,4 @@
-import {
-  Field,
-  Experimental,
-  SmartContract,
-  Mina,
-  method,
-  PublicKey,
-} from 'o1js';
+import { Field, Mina, PublicKey } from 'o1js';
 import { myProgram, ProofOfMyProgram, MyContract } from './exampleProgram.js';
 
 export const putProofOnChain = async (
@@ -22,7 +15,6 @@ export const putProofOnChain = async (
   console.log('proof', proof);
 
   // create transaction
-  const fee = 0.1 * 1e9;
   const zkAppAddress_ = PublicKey.fromBase58(zkAppAddress);
 
   try {

@@ -82,21 +82,24 @@ try {
     creatorPublicKey
   );
 
-  let tx = await Mina.transaction({ sender: feepayerAddress, fee }, () => {
-    zkApp.verifyProof(proof);
-  });
+  let tx = await Mina.transaction(
+    { sender: feepayerAddress, fee },
+    async () => {
+      zkApp.verifyProof(proof);
+    }
+  );
   await tx.prove();
   console.log('send transaction...');
   sentTx = await tx.sign([feepayerKey]).send();
 } catch (err) {
   console.log(err);
 }
-if (sentTx?.hash() !== undefined) {
+if (sentTx?.hash !== undefined) {
   console.log(`
 Success! Update transaction sent.
 
 Your smart contract state will be updated
 as soon as the transaction is included in a block:
-https://berkeley.minaexplorer.com/transaction/${sentTx.hash()}
+https://minascan.io/devnet/tx/${sentTx.hash}
 `);
 }

@@ -11,9 +11,6 @@ https://discord.com/channels/484437221055922177/1151810908331450398/115181090833
 */
 
 import { PrivateKey, Mina } from 'o1js';
-import { readFileSync, existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
 import fs from 'fs/promises';
 
 import { myProgram, MyContract } from './exampleProgram.js';
@@ -66,9 +63,12 @@ const { verificationKey } = await MyContract.compile();
 
 // create transaction, sign and send
 console.log('creating transaction');
-let tx = await Mina.transaction({ sender: feePayerAddress, fee: fee }, () => {
-  new MyContract(zkappAddress).deploy({ verificationKey });
-});
+let tx = await Mina.transaction(
+  { sender: feePayerAddress, fee: fee },
+  async () => {
+    new MyContract(zkappAddress).deploy({ verificationKey });
+  }
+);
 let signedTx = await tx.sign([feePayerKey, zkappKey]);
 console.log(signedTx.toJSON());
 let sentTx = await signedTx.send();

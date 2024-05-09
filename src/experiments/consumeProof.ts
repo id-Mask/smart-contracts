@@ -16,21 +16,22 @@ import {
   Field,
   Bool,
   method,
-  Experimental,
   SmartContract,
   PrivateKey,
   PublicKey,
   AccountUpdate,
   Provable,
   Mina,
+  ZkProgram,
 } from 'o1js';
 
-export const myProgram = Experimental.ZkProgram({
+export const myProgram = ZkProgram({
+  name: 'myProgram',
   publicOutput: Field,
   methods: {
     prove: {
       privateInputs: [Field],
-      method(value: Field): Field {
+      async method(value: Field): Promise<Field> {
         value.assertEquals(Field(1));
         return Field(1);
       },
@@ -38,14 +39,15 @@ export const myProgram = Experimental.ZkProgram({
   },
 });
 
-export class MyProgram extends Experimental.ZkProgram.Proof(myProgram) {}
+export class MyProgram extends ZkProgram.Proof(myProgram) {}
 
-export const otherProgram = Experimental.ZkProgram({
+export const otherProgram = ZkProgram({
+  name: 'otherProgram',
   publicOutput: Field,
   methods: {
     prove: {
       privateInputs: [Field],
-      method(value: Field): Field {
+      async method(value: Field): Promise<Field> {
         value.assertEquals(Field(2));
         return Field(2);
       },
@@ -54,7 +56,7 @@ export const otherProgram = Experimental.ZkProgram({
 });
 
 export class myContract extends SmartContract {
-  @method verifyProof(proof: MyProgram) {
+  @method async verifyProof(proof: MyProgram) {
     proof.verify();
     Provable.log(proof.publicOutput, Bool(true));
   }
@@ -79,18 +81,19 @@ let deployerAccount: PublicKey,
   zkApp: myContract;
 
 const proofsEnabled = true;
-const Local = Mina.LocalBlockchain({ proofsEnabled });
+const Local = await Mina.LocalBlockchain({ proofsEnabled });
 Mina.setActiveInstance(Local);
 
-({ privateKey: deployerKey, publicKey: deployerAccount } =
-  Local.testAccounts[0]);
-({ privateKey: senderKey, publicKey: senderAccount } = Local.testAccounts[1]);
+deployerKey = Local.testAccounts[0].key;
+deployerAccount = PublicKey.fromPrivateKey(deployerKey);
+senderKey = Local.testAccounts[0].key;
+senderAccount = PublicKey.fromPrivateKey(senderKey);
 
 zkAppPrivateKey = PrivateKey.random();
 zkAppAddress = zkAppPrivateKey.toPublicKey();
 zkApp = new myContract(zkAppAddress);
 
-const deployTxn = await Mina.transaction(deployerAccount, () => {
+const deployTxn = await Mina.transaction(deployerAccount, async () => {
   AccountUpdate.fundNewAccount(deployerAccount);
   zkApp.deploy();
 });
@@ -98,7 +101,7 @@ await deployTxn.prove();
 await deployTxn.sign([deployerKey, zkAppPrivateKey]).send();
 
 console.log('use valid proof');
-const txn = await Mina.transaction(senderAccount, () => {
+const txn = await Mina.transaction(senderAccount, async () => {
   // AccountUpdate.fundNewAccount(senderAccount);
   zkApp.verifyProof(proof);
 });
@@ -106,7 +109,7 @@ await txn.prove();
 await txn.sign([senderKey]).send();
 
 console.log('use invalid proof');
-const otherTxn = await Mina.transaction(senderAccount, () => {
+const otherTxn = await Mina.transaction(senderAccount, async () => {
   // AccountUpdate.fundNewAccount(senderAccount);
   zkApp.verifyProof(otherProof);
 });

@@ -21,6 +21,10 @@ import {
   proofOfUniqueHuman,
   ProofOfUniqueHuman,
 } from './ProofOfUniqueHuman.js';
+import {
+  proofOfNationality,
+  ProofOfNationality,
+} from './ProofOfNationality.js';
 
 // proofs map
 interface Proofs {
@@ -39,6 +43,10 @@ const proofs: Proofs = {
   ProofOfUniqueHuman: {
     zkProgram: proofOfUniqueHuman,
     smartContract: ProofOfUniqueHuman,
+  },
+  ProofOfNationality: {
+    zkProgram: proofOfNationality,
+    smartContract: ProofOfNationality,
   },
 };
 
@@ -90,9 +98,9 @@ const fee = Number(config.fee) * 1e9;
 Mina.setActiveInstance(Network);
 
 // fetch to get all the account data including nonce?
-let { account, error } = await fetchAccount({ publicKey: zkAppAddress });
-console.log(account, error);
-await fetchAccount({ publicKey: feePayerAddress });
+// let { account, error } = await fetchAccount({ publicKey: zkAppAddress });
+// console.log(account, error);
+// await fetchAccount({ publicKey: feePayerAddress });
 
 // compile
 console.log('compile the contracts...');
@@ -103,20 +111,24 @@ const zkApp = new proofs[deployAlias].smartContract(zkAppAddress);
 
 // create transaction, sign and send
 console.log('creating transaction');
-let tx = await Mina.transaction({ sender: feePayerAddress, fee: fee }, () => {
-  // deploy to a new address (empty account)
-  // zkApp.deploy({ verificationKey });
-  // zkApp.zkappURI.set('https://idmask.xyz');
+let tx = await Mina.transaction(
+  { sender: feePayerAddress, fee: fee },
+  async () => {
+    // deploy to a new address (empty account)
+    await zkApp.deploy({});
+    zkApp.account.verificationKey.set(verificationKey);
+    zkApp.account.zkappUri.set('https://idmask.xyz');
 
-  // redeploy by setting new verificationKey
-  // https://discord.com/channels/484437221055922177/1086325036643790998/1088450285292224562
-  // https://discord.com/channels/484437221055922177/915745847692636181/1000675690842177547
-  // https://discord.com/channels/484437221055922177/1168554028851011614
-  let update = AccountUpdate.create(zkAppAddress);
-  update.account.verificationKey.set(verificationKey);
-  update.account.zkappUri.set('https://idmask.xyz');
-  update.sign(zkAppKey);
-});
+    // redeploy by setting new verificationKey
+    // https://discord.com/channels/484437221055922177/1086325036643790998/1088450285292224562
+    // https://discord.com/channels/484437221055922177/915745847692636181/1000675690842177547
+    // https://discord.com/channels/484437221055922177/1168554028851011614
+    // let update = AccountUpdate.createSigned(zkAppAddress);
+    // update.account.verificationKey.set(verificationKey);
+    // update.account.zkappUri.set('https://idmask.xyz');
+    // update.sign(zkAppKey);
+  }
+);
 
 console.log('before sending');
 let signedTx = await tx.sign([feePayerKey, zkAppKey]);
@@ -124,12 +136,12 @@ await tx.prove();
 console.log(signedTx.toPretty());
 let sentTx = await signedTx.send();
 
-if (sentTx?.hash() !== undefined) {
+if (sentTx?.hash !== undefined) {
   console.log(`
 Success! Update transaction sent.
 
 Your smart contract state will be updated
 as soon as the transaction is included in a block:
-https://berkeley.minaexplorer.com/transaction/${sentTx.hash()}
+https://minascan.io/devnet/tx/${sentTx.hash}
 `);
 }

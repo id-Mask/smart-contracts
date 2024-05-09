@@ -1,19 +1,20 @@
-import { Field, Experimental, JsonProof } from 'o1js';
+import { Field, ZkProgram, JsonProof } from 'o1js';
 import fs from 'fs';
 
 // define the program
-const MyProgram = Experimental.ZkProgram({
+const MyProgram = ZkProgram({
+  name: 'myProgram',
   methods: {
     method: {
       privateInputs: [Field],
-      method(input: Field) {
+      async method(input: Field) {
         input.assertEquals(Field(0));
       },
     },
   },
 });
 
-class ProofOfMyProgram extends Experimental.ZkProgram.Proof(MyProgram) {}
+class ProofOfMyProgram extends ZkProgram.Proof(MyProgram) {}
 
 // compile and save proof as JSON
 let { verificationKey } = await MyProgram.compile();

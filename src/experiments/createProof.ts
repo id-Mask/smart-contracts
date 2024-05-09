@@ -7,7 +7,7 @@ export const myProgram = ZkProgram({
   methods: {
     prove: {
       privateInputs: [Field],
-      method(value: Field): Field {
+      async method(value: Field): Promise<Field> {
         value.assertEquals(Field(1));
         return Field(1);
       },

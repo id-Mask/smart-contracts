@@ -1,11 +1,12 @@
-import { Field, method, Experimental, SmartContract } from 'o1js';
+import { Field, method, ZkProgram, SmartContract } from 'o1js';
 
-export const myProgram = Experimental.ZkProgram({
+export const myProgram = ZkProgram({
+  name: 'myProgram',
   publicOutput: Field,
   methods: {
     method: {
       privateInputs: [Field],
-      method(value: Field): Field {
+      async method(value: Field): Promise<Field> {
         value.assertEquals(Field(0));
         return Field(1);
       },
@@ -13,10 +14,10 @@ export const myProgram = Experimental.ZkProgram({
   },
 });
 
-export class ProofOfMyProgram extends Experimental.ZkProgram.Proof(myProgram) {}
+export class ProofOfMyProgram extends ZkProgram.Proof(myProgram) {}
 
 export class MyContract extends SmartContract {
-  @method verifyProof(proof: ProofOfMyProgram) {
+  @method async verifyProof(proof: ProofOfMyProgram) {
     proof.verify();
   }
 }
