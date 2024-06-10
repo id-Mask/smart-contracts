@@ -15,6 +15,12 @@ import {
   ProofOfUniqueHumanProof,
 } from './ProofOfUniqueHuman.js';
 
+import {
+  proofOfNationality,
+  ProofOfNationality,
+  ProofOfNationalityProof,
+} from './ProofOfNationality.js';
+
 export {
   PersonalData,
   proofOfAge,
@@ -26,4 +32,7 @@ export {
   proofOfUniqueHuman,
   ProofOfUniqueHuman,
   ProofOfUniqueHumanProof,
+  proofOfNationality,
+  ProofOfNationality,
+  ProofOfNationalityProof,
 };

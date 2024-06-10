@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "deployAliases": {
+    "ProofOfAge": {
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/ProofOfAge.json",
+      "feepayerKeyPath": "/home/raidas/.cache/zkapp-cli/keys/berkeley_alias.json",
+      "feepayerAlias": "berkeley_alias",
+      "fee": "0.1",
+      "smartContract": "ProofOfAge"
+    },
+    "ProofOfSanctions": {
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/ProofOfSanctions.json",
+      "feepayerKeyPath": "/home/raidas/.cache/zkapp-cli/keys/berkeley_alias.json",
+      "feepayerAlias": "berkeley_alias",
+      "fee": "0.1",
+      "smartContract": "ProofOfSanctions"
+    },
+    "ProofOfUniqueHuman": {
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/ProofOfUniqueHuman.json",
+      "feepayerKeyPath": "/home/raidas/.cache/zkapp-cli/keys/berkeley_alias.json",
+      "feepayerAlias": "berkeley_alias",
+      "fee": "0.1",
+      "smartContract": "ProofOfUniqueHuman"
+    },
+    "ProofOfNationality": {
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/ProofOfNationality.json",
+      "feepayerKeyPath": "/home/raidas/.cache/zkapp-cli/keys/berkeley_alias.json",
+      "feepayerAlias": "berkeley_alias",
+      "fee": "0.1",
+      "smartContract": "ProofOfNationality"
+    }
+  }
+}

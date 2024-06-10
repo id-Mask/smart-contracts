@@ -93,14 +93,17 @@ let feePayerKey = PrivateKey.fromBase58(feePayerBase58.privateKey);
 let feePayerAddress = feePayerKey.toPublicKey();
 
 // set up Mina instance
-const Network = Mina.Network(config.url);
+const Network = Mina.Network({
+  networkId: 'mainnet',
+  mina: config.url,
+});
 const fee = Number(config.fee) * 1e9;
 Mina.setActiveInstance(Network);
 
 // fetch to get all the account data including nonce?
-// let { account, error } = await fetchAccount({ publicKey: zkAppAddress });
-// console.log(account, error);
-// await fetchAccount({ publicKey: feePayerAddress });
+let { account, error } = await fetchAccount({ publicKey: zkAppAddress });
+console.log(account, error);
+await fetchAccount({ publicKey: feePayerAddress });
 
 // compile
 console.log('compile the contracts...');
@@ -131,7 +134,7 @@ let tx = await Mina.transaction(
 );
 
 console.log('before sending');
-let signedTx = await tx.sign([feePayerKey, zkAppKey]);
+let signedTx = tx.sign([feePayerKey, zkAppKey]);
 await tx.prove();
 console.log(signedTx.toPretty());
 let sentTx = await signedTx.send();
