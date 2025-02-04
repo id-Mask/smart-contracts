@@ -73,7 +73,7 @@ describe('ProofOfSanctions', () => {
       publicInput.toFields()
     );
 
-    const proof = await proofOfSanctions.proveSanctions(
+    const { proof } = await proofOfSanctions.proveSanctions(
       publicInput,
       Signature.fromJSON(zkOracleResponse.signature),
       creatorDataSignature,
@@ -155,7 +155,7 @@ describe('ProofOfSanctions', () => {
       publicInput.toFields()
     );
 
-    const proof = await proofOfSanctions.proveSanctions(
+    const { proof } = await proofOfSanctions.proveSanctions(
       publicInput,
       Signature.fromJSON(zkOracleResponse.signature),
       creatorDataSignature,

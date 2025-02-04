@@ -35,7 +35,7 @@ export const proofOfNationality = ZkProgram({
         signature: Signature,
         creatorSignature: Signature,
         creatorPublicKey: PublicKey
-      ): Promise<PublicOutput> {
+      ) {
         // verify zkOracle data
         const oraclePuclicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
@@ -62,11 +62,13 @@ export const proofOfNationality = ZkProgram({
         const secondChar = personalData.country.values[1].value;
         const nationality = firstChar.mul(100).add(secondChar);
 
-        return new PublicOutput({
-          nationality: nationality,
-          currentDate: personalData.currentDate,
-          creatorPublicKey: creatorPublicKey,
-        });
+        return {
+          publicOutput: {
+            nationality: nationality,
+            currentDate: personalData.currentDate,
+            creatorPublicKey: creatorPublicKey,
+          },
+        };
       },
     },
   },

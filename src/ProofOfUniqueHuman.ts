@@ -40,7 +40,7 @@ export const proofOfUniqueHuman = ZkProgram({
         secretValueSignature: Signature,
         creatorSignature: Signature,
         creatorPublicKey: PublicKey
-      ): Promise<PublicOutput> {
+      ) {
         const oraclePuclicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
         );
@@ -84,11 +84,13 @@ export const proofOfUniqueHuman = ZkProgram({
           ...secretValue.values.map((item) => item.toField()),
         ]);
 
-        return new PublicOutput({
-          hash: hash,
-          currentDate: personalData.currentDate,
-          creatorPublicKey: creatorPublicKey,
-        });
+        return {
+          publicOutput: {
+            hash: hash,
+            currentDate: personalData.currentDate,
+            creatorPublicKey: creatorPublicKey,
+          },
+        };
       },
     },
   },

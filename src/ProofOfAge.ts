@@ -9,7 +9,11 @@ import {
   ZkProgram,
 } from 'o1js';
 
-import { PersonalData, parseDateFromPNO } from './ProofOfAge.utils.js';
+import {
+  PersonalData,
+  parseDateFromPNO,
+  PassKeysParams,
+} from './ProofOfAge.utils.js';
 
 class PublicOutput extends Struct({
   ageToProveInYears: Field,
@@ -28,14 +32,16 @@ export const proofOfAge = ZkProgram({
         Signature, // zkOracle data signature
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
+        PassKeysParams,
       ],
       async method(
         ageToProveInYears: Field,
         personalData: PersonalData,
         oracleSignature: Signature,
         creatorSignature: Signature,
-        creatorPublicKey: PublicKey
-      ): Promise<PublicOutput> {
+        creatorPublicKey: PublicKey,
+        PassKeysParams: PassKeysParams
+      ) {
         /*
           Verify zk-oracle signature
 
@@ -43,13 +49,13 @@ export const proofOfAge = ZkProgram({
           untampered with and aligns precisely with the information provided by 
           the KYC/digital ID provider.
         */
-        const validSignature = oracleSignature.verify(
+        const validSignatureOracle = oracleSignature.verify(
           PublicKey.fromBase58(
             'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
           ),
           personalData.toFields()
         );
-        validSignature.assertTrue();
+        validSignatureOracle.assertTrue();
 
         /*
           Verify creatorSignature
@@ -61,11 +67,23 @@ export const proofOfAge = ZkProgram({
           prompting the user to sign a superficial message and provide evidence of ownership 
           of the corresponding account.
         */
-        const validSignature_ = creatorSignature.verify(
+        const validSignatureWallet = creatorSignature.verify(
           creatorPublicKey,
           personalData.toFields()
         );
-        validSignature_.assertTrue();
+        validSignatureWallet.assertTrue();
+
+        /*
+          verify passkeys signature: The rationale behind this is to bind the proof to passkeys.
+          same as with creatorSignature. In fact this is a better replacement for it. We can 
+          depreciate creatorSignature in the future.  
+        */
+        const validSignaturePassKeys =
+          PassKeysParams.signature.verifySignedHash(
+            PassKeysParams.payload,
+            PassKeysParams.publicKey
+          );
+        validSignaturePassKeys.assertTrue();
 
         // parse date of birth from pno
         const dateOfBirth = parseDateFromPNO(personalData.pno);
@@ -79,11 +97,13 @@ export const proofOfAge = ZkProgram({
           .greaterThan(dateOfBirth);
         olderThanAgeToProve.assertTrue();
 
-        return new PublicOutput({
-          ageToProveInYears: ageToProveInYears,
-          currentDate: personalData.currentDate,
-          creatorPublicKey: creatorPublicKey,
-        });
+        return {
+          publicOutput: {
+            ageToProveInYears: ageToProveInYears,
+            currentDate: personalData.currentDate,
+            creatorPublicKey: creatorPublicKey,
+          },
+        };
       },
     },
   },

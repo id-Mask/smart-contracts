@@ -79,7 +79,7 @@ describe('ProofOfUniqueHuman', () => {
       personalData.toFields()
     );
 
-    const proof = await proofOfUniqueHuman.proveUniqueHuman(
+    const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature),
       secretValue,
@@ -163,7 +163,7 @@ describe('ProofOfUniqueHuman', () => {
       personalData.toFields()
     );
 
-    const proof = await proofOfUniqueHuman.proveUniqueHuman(
+    const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature),
       secretValue,

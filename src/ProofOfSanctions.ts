@@ -44,7 +44,7 @@ export const proofOfSanctions = ZkProgram({
         signature: Signature,
         creatorSignature: Signature,
         creatorPublicKey: PublicKey
-      ): Promise<PublicOutput> {
+      ) {
         // verity zkOracle data
         const verified = verifyOracleData(
           publicInput.isMatched,
@@ -64,11 +64,13 @@ export const proofOfSanctions = ZkProgram({
         // assert that search agains OFAC db yielded no results
         publicInput.isMatched.assertFalse();
 
-        return new PublicOutput({
-          minScore: publicInput.minScore,
-          currentDate: publicInput.currentDate,
-          creatorPublicKey: creatorPublicKey,
-        });
+        return {
+          publicOutput: {
+            minScore: publicInput.minScore,
+            currentDate: publicInput.currentDate,
+            creatorPublicKey: creatorPublicKey,
+          },
+        };
       },
     },
   },

@@ -73,7 +73,7 @@ describe('ProofOfNationality', () => {
       personalData.toFields()
     );
 
-    const proof = await proofOfNationality.proveNationality(
+    const { proof } = await proofOfNationality.proveNationality(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature),
       creatorDataSignature,
@@ -153,7 +153,7 @@ describe('ProofOfNationality', () => {
       personalData.toFields()
     );
 
-    const proof = await proofOfNationality.proveNationality(
+    const { proof } = await proofOfNationality.proveNationality(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature),
       creatorDataSignature,
