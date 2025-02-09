@@ -7,7 +7,12 @@ import {
 
 import { getMockSecretValue } from './ProofOfUniqueHuman.utils.js';
 
-import { PersonalData, zkOracleResponseMock } from './ProofOfAge.utils.js';
+import {
+  PersonalData,
+  zkOracleResponseMock,
+  PassKeysParams,
+  passKeysResponseMock,
+} from './proof.utils.js';
 
 import {
   Field,
@@ -78,6 +83,7 @@ describe('ProofOfUniqueHuman', () => {
       creatorPrivateKey,
       personalData.toFields()
     );
+    const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
     const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
@@ -85,7 +91,8 @@ describe('ProofOfUniqueHuman', () => {
       secretValue,
       Signature.fromJSON(mockSecret.signature),
       creatorDataSignature,
-      creatorPublicKey
+      creatorPublicKey,
+      passKeysParams
     );
     const proofJson = proof.toJSON();
     proof.verify();
@@ -162,6 +169,7 @@ describe('ProofOfUniqueHuman', () => {
       creatorPrivateKey,
       personalData.toFields()
     );
+    const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
     const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
@@ -169,7 +177,8 @@ describe('ProofOfUniqueHuman', () => {
       secretValue,
       Signature.fromJSON(mockSecret.signature),
       creatorDataSignature,
-      creatorPublicKey
+      creatorPublicKey,
+      passKeysParams
     );
     const proofJson = proof.toJSON();
 

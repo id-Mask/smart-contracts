@@ -1,13 +1,15 @@
 // Import statements from both files
 import { proofOfAge, ProofOfAge, ProofOfAgeProof } from './ProofOfAge.js';
+
 import {
   PersonalData,
   zkOracleResponseMock,
-  parseDateFromPNO,
   PassKeysParams,
-  passKeysMock,
-  // verifyOracleData,
-} from './ProofOfAge.utils.js';
+  passKeysResponseMock,
+} from './proof.utils.js';
+
+import { parseDateFromPNO } from './ProofOfAge.utils.js';
+
 import {
   Field,
   Mina,
@@ -84,7 +86,7 @@ describe('ProofOfAge', () => {
       creatorPrivateKey,
       personalData.toFields()
     );
-    const passKeysParams = new PassKeysParams(passKeysMock());
+    const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
     const { proof } = await proofOfAge.proveAge(
       Field(ageToProveInYears),
@@ -171,7 +173,7 @@ describe('ProofOfAge', () => {
       creatorPrivateKey,
       personalData.toFields()
     );
-    const passKeysParams = new PassKeysParams(passKeysMock());
+    const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
     const { proof } = await proofOfAge.proveAge(
       Field(ageToProveInYears),

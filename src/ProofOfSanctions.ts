@@ -12,6 +12,8 @@ import {
 
 import { verifyOracleData } from './ProofOfSanctions.utils.js';
 
+import { PassKeysParams, Secp256r1 } from './proof.utils.js';
+
 export class PublicInput extends Struct({
   isMatched: Bool,
   minScore: Field,
@@ -26,6 +28,8 @@ class PublicOutput extends Struct({
   minScore: Field,
   currentDate: Field,
   creatorPublicKey: PublicKey,
+  passkeysPublicKey: Secp256r1,
+  passkeysId: Field,
 }) {}
 
 export const proofOfSanctions = ZkProgram({
@@ -38,28 +42,38 @@ export const proofOfSanctions = ZkProgram({
         Signature, // zkOracle data signature
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
+        PassKeysParams, // passkeys params
       ],
       async method(
         publicInput: PublicInput,
         signature: Signature,
         creatorSignature: Signature,
-        creatorPublicKey: PublicKey
+        creatorPublicKey: PublicKey,
+        PassKeysParams: PassKeysParams
       ) {
-        // verity zkOracle data
-        const verified = verifyOracleData(
+        // verify zkOracle data
+        const validSignatureOracle = verifyOracleData(
           publicInput.isMatched,
           publicInput.minScore,
           publicInput.currentDate,
           signature
         );
-        verified.assertTrue();
+        validSignatureOracle.assertTrue();
 
-        // verify creator signature
-        const validSignature_ = creatorSignature.verify(
+        // verify creator wallet signature
+        const validSignatureWallet = creatorSignature.verify(
           creatorPublicKey,
           publicInput.toFields()
         );
-        validSignature_.assertTrue();
+        validSignatureWallet.assertTrue();
+
+        // verify passkeys signature
+        const validSignaturePassKeys =
+          PassKeysParams.signature.verifySignedHash(
+            PassKeysParams.payload,
+            PassKeysParams.publicKey
+          );
+        validSignaturePassKeys.assertTrue();
 
         // assert that search agains OFAC db yielded no results
         publicInput.isMatched.assertFalse();
@@ -69,6 +83,8 @@ export const proofOfSanctions = ZkProgram({
             minScore: publicInput.minScore,
             currentDate: publicInput.currentDate,
             creatorPublicKey: creatorPublicKey,
+            passkeysPublicKey: PassKeysParams.publicKey,
+            passkeysId: PassKeysParams.id,
           },
         };
       },

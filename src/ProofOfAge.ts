@@ -9,16 +9,16 @@ import {
   ZkProgram,
 } from 'o1js';
 
-import {
-  PersonalData,
-  parseDateFromPNO,
-  PassKeysParams,
-} from './ProofOfAge.utils.js';
+import { PersonalData, PassKeysParams, Secp256r1 } from './proof.utils.js';
+
+import { parseDateFromPNO } from './ProofOfAge.utils.js';
 
 class PublicOutput extends Struct({
   ageToProveInYears: Field,
   currentDate: Field,
   creatorPublicKey: PublicKey,
+  passkeysPublicKey: Secp256r1,
+  passkeysId: Field,
 }) {}
 
 export const proofOfAge = ZkProgram({
@@ -32,7 +32,7 @@ export const proofOfAge = ZkProgram({
         Signature, // zkOracle data signature
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
-        PassKeysParams,
+        PassKeysParams, // passkeys params
       ],
       async method(
         ageToProveInYears: Field,
@@ -102,6 +102,8 @@ export const proofOfAge = ZkProgram({
             ageToProveInYears: ageToProveInYears,
             currentDate: personalData.currentDate,
             creatorPublicKey: creatorPublicKey,
+            passkeysPublicKey: PassKeysParams.publicKey,
+            passkeysId: PassKeysParams.id,
           },
         };
       },

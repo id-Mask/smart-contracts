@@ -11,12 +11,14 @@ import {
   PublicKey,
 } from 'o1js';
 
-import { PersonalData } from './ProofOfAge.utils.js';
+import { PersonalData, PassKeysParams, Secp256r1 } from './proof.utils.js';
 
 class PublicOutput extends Struct({
   hash: Field,
   currentDate: Field,
   creatorPublicKey: PublicKey,
+  passkeysPublicKey: Secp256r1,
+  passkeysId: Field,
 }) {}
 
 export const proofOfUniqueHuman = ZkProgram({
@@ -32,6 +34,7 @@ export const proofOfUniqueHuman = ZkProgram({
         Signature, // signature of unique secret value
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
+        PassKeysParams, // passkeys params
       ],
       async method(
         personalData: PersonalData,
@@ -39,18 +42,19 @@ export const proofOfUniqueHuman = ZkProgram({
         secretValue: CircuitString,
         secretValueSignature: Signature,
         creatorSignature: Signature,
-        creatorPublicKey: PublicKey
+        creatorPublicKey: PublicKey,
+        PassKeysParams: PassKeysParams
       ) {
-        const oraclePuclicKey = PublicKey.fromBase58(
+        const oraclePublicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
         );
 
         // verify data inputs
-        const verified = personalDataSignature.verify(
-          oraclePuclicKey,
+        const validSignatureOracle = personalDataSignature.verify(
+          oraclePublicKey,
           personalData.toFields()
         );
-        verified.assertTrue();
+        validSignatureOracle.assertTrue();
 
         /*
           Why use SecretValue?
@@ -63,18 +67,26 @@ export const proofOfUniqueHuman = ZkProgram({
           Instead of: hash(name, surname, pno), do: hash(name, surname, pno, secretvalue)
 
         */
-        const verified_ = secretValueSignature.verify(
-          oraclePuclicKey,
+        const validSecretValue = secretValueSignature.verify(
+          oraclePublicKey,
           secretValue.values.map((item) => item.toField())
         );
-        verified_.assertTrue();
+        validSecretValue.assertTrue();
 
         // verify creator signature
-        const validSignature_ = creatorSignature.verify(
+        const validSignatureWallet = creatorSignature.verify(
           creatorPublicKey,
           personalData.toFields()
         );
-        validSignature_.assertTrue();
+        validSignatureWallet.assertTrue();
+
+        // verify passkeys signature
+        const validSignaturePassKeys =
+          PassKeysParams.signature.verifySignedHash(
+            PassKeysParams.payload,
+            PassKeysParams.publicKey
+          );
+        validSignaturePassKeys.assertTrue();
 
         // create hash unique to this person
         const hash = Poseidon.hash([
@@ -89,6 +101,8 @@ export const proofOfUniqueHuman = ZkProgram({
             hash: hash,
             currentDate: personalData.currentDate,
             creatorPublicKey: creatorPublicKey,
+            passkeysPublicKey: PassKeysParams.publicKey,
+            passkeysId: PassKeysParams.id,
           },
         };
       },

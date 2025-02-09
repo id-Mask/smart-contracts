@@ -6,6 +6,8 @@ import {
   PublicInput,
 } from './ProofOfSanctions.js';
 
+import { PassKeysParams, passKeysResponseMock } from './proof.utils.js';
+
 import {
   zkOracleResponseMock,
   verifyOracleData,
@@ -72,12 +74,14 @@ describe('ProofOfSanctions', () => {
       creatorPrivateKey,
       publicInput.toFields()
     );
+    const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
     const { proof } = await proofOfSanctions.proveSanctions(
       publicInput,
       Signature.fromJSON(zkOracleResponse.signature),
       creatorDataSignature,
-      creatorPublicKey
+      creatorPublicKey,
+      passKeysParams
     );
     const proofJson = proof.toJSON();
     expect(proofJson.publicOutput[0]).toBe(
@@ -154,12 +158,14 @@ describe('ProofOfSanctions', () => {
       creatorPrivateKey,
       publicInput.toFields()
     );
+    const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
     const { proof } = await proofOfSanctions.proveSanctions(
       publicInput,
       Signature.fromJSON(zkOracleResponse.signature),
       creatorDataSignature,
-      creatorPublicKey
+      creatorPublicKey,
+      passKeysParams
     );
     const proofJson = proof.toJSON();
 

@@ -4,7 +4,14 @@ import {
   ProofOfNationality,
   ProofOfNationalityProof,
 } from './ProofOfNationality.js';
-import { PersonalData, zkOracleResponseMock } from './ProofOfAge.utils.js';
+
+import {
+  PersonalData,
+  zkOracleResponseMock,
+  PassKeysParams,
+  passKeysResponseMock,
+} from './proof.utils.js';
+
 import {
   Field,
   Mina,
@@ -72,12 +79,14 @@ describe('ProofOfNationality', () => {
       creatorPrivateKey,
       personalData.toFields()
     );
+    const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
     const { proof } = await proofOfNationality.proveNationality(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature),
       creatorDataSignature,
-      creatorPublicKey
+      creatorPublicKey,
+      passKeysParams
     );
     const proofJson = proof.toJSON();
     expect(proofJson.publicOutput[0]).toBe('6969');
@@ -152,12 +161,14 @@ describe('ProofOfNationality', () => {
       creatorPrivateKey,
       personalData.toFields()
     );
+    const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
     const { proof } = await proofOfNationality.proveNationality(
       personalData,
       Signature.fromJSON(zkOracleResponse.signature),
       creatorDataSignature,
-      creatorPublicKey
+      creatorPublicKey,
+      passKeysParams
     );
     const proofJson = proof.toJSON();
 
