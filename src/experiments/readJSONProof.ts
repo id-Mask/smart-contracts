@@ -18,7 +18,7 @@ class ProofOfMyProgram extends ZkProgram.Proof(MyProgram) {}
 
 // compile and save proof as JSON
 let { verificationKey } = await MyProgram.compile();
-let proof = await MyProgram.method(Field(0));
+let { proof } = await MyProgram.method(Field(0));
 const proofJson = proof.toJSON();
 console.log(proofJson);
 

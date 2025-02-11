@@ -1,7 +1,12 @@
 // export so that its possible to import it using the npm package
 
 import { proofOfAge, ProofOfAge, ProofOfAgeProof } from './ProofOfAge.js';
-import { PersonalData } from './ProofOfAge.utils.js';
+import {
+  PersonalData,
+  Secp256r1,
+  EcdsaP256,
+  PassKeysParams,
+} from './proof.utils.js';
 
 import {
   proofOfSanctions,
@@ -23,6 +28,9 @@ import {
 
 export {
   PersonalData,
+  Secp256r1,
+  EcdsaP256,
+  PassKeysParams,
   proofOfAge,
   ProofOfAge,
   ProofOfAgeProof,

@@ -7,9 +7,9 @@ export const myProgram = ZkProgram({
   methods: {
     prove: {
       privateInputs: [Field],
-      async method(value: Field): Promise<Field> {
+      async method(value: Field) {
         value.assertEquals(Field(1));
-        return Field(1);
+        return { publicOutput: Field(1) };
       },
     },
   },
@@ -18,5 +18,5 @@ export const myProgram = ZkProgram({
 // create proof
 const cache: Cache = Cache.FileSystem('./cache');
 await myProgram.compile({ cache });
-const proof = await myProgram.prove(Field(1));
+const { proof } = await myProgram.prove(Field(1));
 await fs.promises.writeFile('proof.json', JSON.stringify(proof.toJSON()));

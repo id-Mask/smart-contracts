@@ -25,13 +25,14 @@ const myProgram = ZkProgram({
   methods: {
     prove: {
       privateInputs: [Field],
-      async method(value: Field): Promise<typeof publicOutput> {
+      async method(value: Field) {
         value.assertEquals(Field(1));
-        const publicOutput = new zkProofOutput({
-          proofValid: Bool(true),
-          currentDate: CircuitString.fromString('2025-01-01'),
-        });
-        return publicOutput;
+        return {
+          publicOutput: {
+            proofValid: Bool(true),
+            currentDate: CircuitString.fromString('2025-01-01'),
+          },
+        };
       },
     },
   },
@@ -39,5 +40,5 @@ const myProgram = ZkProgram({
 
 // run
 await myProgram.compile();
-const proof = await myProgram.prove(Field(1));
+const { proof } = await myProgram.prove(Field(1));
 console.log(JSON.stringify(proof.toJSON()).substring(0, 300));

@@ -6,9 +6,9 @@ export const myProgram = ZkProgram({
   methods: {
     method: {
       privateInputs: [Field],
-      async method(value: Field): Promise<Field> {
+      async method(value: Field) {
         value.assertEquals(Field(0));
-        return Field(1);
+        return { publicOutput: Field(1) };
       },
     },
   },

@@ -1,7 +1,12 @@
 import fs from 'fs/promises';
 import { proofOfAge, ProofOfAge } from './ProofOfAge.js';
 
-import { zkOracleResponseMock, PersonalData } from './ProofOfAge.utils.js';
+import {
+  PersonalData,
+  zkOracleResponseMock,
+  PassKeysParams,
+  passKeysResponseMock,
+} from './proof.utils.js';
 
 import { Field, Mina, PrivateKey, CircuitString, Signature } from 'o1js';
 
@@ -72,14 +77,16 @@ try {
     creatorPrivateKey,
     personalData.toFields()
   );
+  const passKeysParams = new PassKeysParams(passKeysResponseMock());
 
   const ageToProveInYears = 18;
-  const proof = await proofOfAge.proveAge(
+  const { proof } = await proofOfAge.proveAge(
     Field(ageToProveInYears),
     personalData,
     Signature.fromJSON(zkOracleResponse.signature),
     creatorDataSignature,
-    creatorPublicKey
+    creatorPublicKey,
+    passKeysParams
   );
 
   let tx = await Mina.transaction(

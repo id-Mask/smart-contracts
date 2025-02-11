@@ -31,9 +31,9 @@ export const myProgram = ZkProgram({
   methods: {
     prove: {
       privateInputs: [Field],
-      async method(value: Field): Promise<Field> {
+      async method(value: Field) {
         value.assertEquals(Field(1));
-        return Field(1);
+        return { publicOutput: Field(1) };
       },
     },
   },
@@ -47,9 +47,9 @@ export const otherProgram = ZkProgram({
   methods: {
     prove: {
       privateInputs: [Field],
-      async method(value: Field): Promise<Field> {
+      async method(value: Field) {
         value.assertEquals(Field(2));
-        return Field(2);
+        return { publicOutput: Field(2) };
       },
     },
   },
@@ -66,8 +66,8 @@ export class myContract extends SmartContract {
 await myProgram.compile();
 await otherProgram.compile();
 
-const proof = await myProgram.prove(Field(1));
-const otherProof = await otherProgram.prove(Field(2));
+const { proof } = await myProgram.prove(Field(1));
+const { proof: otherProof } = await otherProgram.prove(Field(2));
 
 // use proofs inside the SmartContract
 await myContract.compile();
