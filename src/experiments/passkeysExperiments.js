@@ -1,4 +1,4 @@
-import { Field } from 'o1js';
+import { Field, createForeignCurve, Crypto } from 'o1js';
 
 const chars = 'qaJp7BwUkIObDyRE5o_xNg';
 
