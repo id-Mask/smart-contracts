@@ -131,3 +131,26 @@ export const decodeFromAsciiNumber = (num: number) => {
 
   return result.join('');
 };
+
+export const toPublicKeyHex = (x: number, y: number) => {
+  /*
+  Example usage:
+
+  import { Crypto, createForeignCurve } from 'o1js';
+
+  class Secp256r1 extends createForeignCurve(Crypto.CurveParams.Secp256r1) {}
+
+  const publicKeyHex =
+    '0x04f233d2c2db88ea7c936939cea21f22f1d308d3f527969f5e73ef49b47245d80c8abc0824030a31ee43dfba8419e5044f1f9e82d4e72d73b847b8ffd5f606d0a8';
+  const publicKey = Secp256r1.fromHex(publicKeyHex);
+
+  const publicKeyHex_ = toPublicKeyHex(
+    publicKey.toBigint().x,
+    publicKey.toBigint().y
+  );
+
+*/
+  return (
+    '0x04' + x.toString(16).padStart(64, '0') + y.toString(16).padStart(64, '0')
+  );
+};
