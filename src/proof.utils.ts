@@ -28,6 +28,7 @@ export class PersonalData extends Struct({
   country: CircuitString,
   pno: CircuitString,
   currentDate: Field,
+  isMockData: Field,
 }) {
   // method for signature creation and verification
   toFields(): Field[] {
@@ -37,6 +38,7 @@ export class PersonalData extends Struct({
       ...this.country.values.map((item) => item.toField()),
       ...this.pno.values.map((item) => item.toField()),
       this.currentDate,
+      this.isMockData,
     ];
   }
 }
@@ -52,6 +54,7 @@ export const zkOracleResponseMock = () => {
     country: 'EE',
     pno: 'PNOLT-41111117143',
     currentDate: 20231024,
+    isMockData: 1,
   };
 
   const personalData = new PersonalData({
@@ -60,6 +63,7 @@ export const zkOracleResponseMock = () => {
     country: CircuitString.fromString(data.country),
     pno: CircuitString.fromString(data.pno),
     currentDate: Field(data.currentDate),
+    isMockData: Field(data.isMockData),
   });
 
   const signature = Signature.create(privateKey, personalData.toFields());

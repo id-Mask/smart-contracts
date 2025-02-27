@@ -69,6 +69,7 @@ try {
     country: CircuitString.fromString(zkOracleResponse.data.country),
     pno: CircuitString.fromString(zkOracleResponse.data.pno),
     currentDate: Field(zkOracleResponse.data.currentDate),
+    isMockData: Field(zkOracleResponse.data.isMockData),
   });
 
   const creatorPrivateKey = PrivateKey.random();

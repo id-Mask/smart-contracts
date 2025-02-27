@@ -10,11 +10,9 @@ import {
   PublicKey,
 } from 'o1js';
 
-import { verifyOracleData } from './ProofOfSanctions.utils.js';
+import { PersonalData, PassKeysParams, Secp256r1 } from './proof.utils.js';
 
-import { PassKeysParams, Secp256r1 } from './proof.utils.js';
-
-export class PublicInput extends Struct({
+export class SanctionsData extends Struct({
   isMatched: Bool,
   minScore: Field,
   currentDate: Field,
@@ -30,40 +28,54 @@ class PublicOutput extends Struct({
   creatorPublicKey: PublicKey,
   passkeysPublicKey: Secp256r1,
   passkeysId: Field,
+  isMockData: Field,
 }) {}
 
 export const proofOfSanctions = ZkProgram({
   name: 'ZkProofOfSanctions',
-  publicInput: PublicInput, // defined above
+  publicInput: SanctionsData, // defined above
   publicOutput: PublicOutput, // defined above
   methods: {
     proveSanctions: {
       privateInputs: [
-        Signature, // zkOracle data signature
+        PersonalData,
+        Signature, // zkOracle data signature (personal data)
+        Signature, // zkOracle data signature (is matched data)
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
         PassKeysParams, // passkeys params
       ],
       async method(
-        publicInput: PublicInput,
-        signature: Signature,
+        sanctionsData: SanctionsData,
+        personalData: PersonalData,
+        oracleSignaturePersonalData: Signature,
+        oracleSignatureSanctionsData: Signature,
         creatorSignature: Signature,
         creatorPublicKey: PublicKey,
         PassKeysParams: PassKeysParams
       ) {
-        // verify zkOracle data
-        const validSignatureOracle = verifyOracleData(
-          publicInput.isMatched,
-          publicInput.minScore,
-          publicInput.currentDate,
-          signature
+        // verify zkOracle data (personal data)
+        const validSignaturePersonalData = oracleSignaturePersonalData.verify(
+          PublicKey.fromBase58(
+            'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
+          ),
+          personalData.toFields()
         );
-        validSignatureOracle.assertTrue();
+        validSignaturePersonalData.assertTrue();
+
+        // verify zkOracle data (sanctions match)
+        const validSignatureSanctionsData = oracleSignatureSanctionsData.verify(
+          PublicKey.fromBase58(
+            'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
+          ),
+          sanctionsData.toFields()
+        );
+        validSignatureSanctionsData.assertTrue();
 
         // verify creator wallet signature
         const validSignatureWallet = creatorSignature.verify(
           creatorPublicKey,
-          publicInput.toFields()
+          sanctionsData.toFields()
         );
         validSignatureWallet.assertTrue();
 
@@ -76,15 +88,16 @@ export const proofOfSanctions = ZkProgram({
         validSignaturePassKeys.assertTrue();
 
         // assert that search agains OFAC db yielded no results
-        publicInput.isMatched.assertFalse();
+        sanctionsData.isMatched.assertFalse();
 
         return {
           publicOutput: {
-            minScore: publicInput.minScore,
-            currentDate: publicInput.currentDate,
+            minScore: sanctionsData.minScore,
+            currentDate: sanctionsData.currentDate,
             creatorPublicKey: creatorPublicKey,
             passkeysPublicKey: PassKeysParams.publicKey,
             passkeysId: PassKeysParams.id,
+            isMockData: personalData.isMockData,
           },
         };
       },

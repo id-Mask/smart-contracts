@@ -1,23 +1,7 @@
 import 'dotenv/config';
-import { Field, PublicKey, PrivateKey, Signature, Bool } from 'o1js';
+import { Field, PrivateKey, Signature, Bool } from 'o1js';
 
-const verifyOracleData = (
-  isMatched: Bool,
-  minScore: Field,
-  currentDate: Field,
-  signature: Signature
-): Bool => {
-  const PUBLIC_KEY = 'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN';
-  const publicKey = PublicKey.fromBase58(PUBLIC_KEY);
-  const validSignature = signature.verify(publicKey, [
-    isMatched.toField(),
-    minScore,
-    currentDate,
-  ]);
-  return validSignature;
-};
-
-const zkOracleResponseMock = (isMatched: boolean) => {
+const zkOracleSanctionsDataResponseMock = (isMatched: boolean) => {
   const data = {
     isMatched: isMatched,
     minScore: 95,
@@ -42,4 +26,4 @@ const zkOracleResponseMock = (isMatched: boolean) => {
   };
 };
 
-export { verifyOracleData, zkOracleResponseMock };
+export { zkOracleSanctionsDataResponseMock };

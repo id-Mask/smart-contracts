@@ -17,6 +17,7 @@ class PublicOutput extends Struct({
   creatorPublicKey: PublicKey,
   passkeysPublicKey: Secp256r1,
   passkeysId: Field,
+  isMockData: Field,
 }) {}
 
 export const proofOfNationality = ZkProgram({
@@ -79,6 +80,7 @@ export const proofOfNationality = ZkProgram({
             creatorPublicKey: creatorPublicKey,
             passkeysPublicKey: PassKeysParams.publicKey,
             passkeysId: PassKeysParams.id,
+            isMockData: personalData.isMockData,
           },
         };
       },

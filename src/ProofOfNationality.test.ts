@@ -10,6 +10,7 @@ import {
   zkOracleResponseMock,
   PassKeysParams,
   passKeysResponseMock,
+  Secp256r1,
 } from './proof.utils.js';
 
 import {
@@ -23,6 +24,7 @@ import {
   JsonProof,
   Cache,
 } from 'o1js';
+import { Field3 } from 'o1js/dist/node/lib/provable/gadgets/foreign-field.js';
 
 describe('ProofOfNationality', () => {
   beforeAll(async () => {
@@ -54,6 +56,7 @@ describe('ProofOfNationality', () => {
       country: CircuitString.fromString(zkOracleResponse.data.country),
       pno: CircuitString.fromString(zkOracleResponse.data.pno),
       currentDate: Field(zkOracleResponse.data.currentDate),
+      isMockData: Field(zkOracleResponse.data.isMockData),
     });
     const signature = Signature.fromJSON(zkOracleResponse.signature);
     const validSignature = signature.verify(
@@ -71,6 +74,7 @@ describe('ProofOfNationality', () => {
       country: CircuitString.fromString(zkOracleResponse.data.country),
       pno: CircuitString.fromString(zkOracleResponse.data.pno),
       currentDate: Field(zkOracleResponse.data.currentDate),
+      isMockData: Field(zkOracleResponse.data.isMockData),
     });
 
     const creatorPrivateKey = PrivateKey.random();
@@ -89,15 +93,60 @@ describe('ProofOfNationality', () => {
       passKeysParams
     );
     const proofJson = proof.toJSON();
+
+    /*
+      publicOutput structure and meaning:
+
+      [
+        '6969',
+        '20231024',
+        '11544763406991407198287049458354218125756549397745563385277015494078733626067',
+        '0',
+        '182091471560890451648436236',
+        '69884569829666403892065575',
+        '1143768659744487871648617',
+        '54948133397259751447253160',
+        '225484032495063594216641767',
+        '655155149119062222455775',
+        '1139774112556611934184154393646905468295315573440512',
+        '1'
+      ]
+
+      0     -> nationality 
+      1     -> date
+      2-3   -> mina wallet public key
+      4-9   -> passkeys public key (x=4-6; y=7-9)
+      10    -> passkeys webauthn key id parsed as int
+      11    -> is personal data mocked? (1 yes, 0 no)
+    */
+
     expect(proofJson.publicOutput[0]).toBe('6969');
     expect(proofJson.publicOutput[1]).toBe('20231024');
+
+    // mina wallet public key
     expect(
       PublicKey.fromFields([
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
     ).toBe(creatorPublicKey.toBase58());
-    // console.log(`proof: ${JSON.stringify(proof.toJSON()).slice(0, 100)} ...`);
+
+    // passkey public key
+    const passKeysX = proofJson.publicOutput
+      .slice(4, 7)
+      .map((i) => new Field(i)) as Field3;
+    const passKeysY = proofJson.publicOutput
+      .slice(7, 10)
+      .map((i) => new Field(i)) as Field3;
+    const passkeysPublicKey = new Secp256r1({
+      x: passKeysX,
+      y: passKeysY,
+    }).toBigint();
+    expect(passkeysPublicKey.x).toBe(passKeysParams.publicKey.toBigint().x);
+    expect(passkeysPublicKey.y).toBe(passKeysParams.publicKey.toBigint().y);
+
+    // personal data mocked flag
+    expect(proofJson.publicOutput[11]).toBe('1');
   });
 
   /*
@@ -153,6 +202,7 @@ describe('ProofOfNationality', () => {
       country: CircuitString.fromString(zkOracleResponse.data.country),
       pno: CircuitString.fromString(zkOracleResponse.data.pno),
       currentDate: Field(zkOracleResponse.data.currentDate),
+      isMockData: Field(zkOracleResponse.data.isMockData),
     });
 
     const creatorPrivateKey = PrivateKey.random();

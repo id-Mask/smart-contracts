@@ -1,15 +1,5 @@
 import 'dotenv/config';
-import {
-  Field,
-  PrivateKey,
-  Signature,
-  CircuitString,
-  Struct,
-  Provable,
-  createForeignCurve,
-  createEcdsa,
-  Crypto,
-} from 'o1js';
+import { Field, CircuitString, Provable } from 'o1js';
 
 /*
 11 digits (https://learn.microsoft.com/en-us/purview/sit-defn-estonia-personal-identification-code):
