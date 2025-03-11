@@ -78,7 +78,7 @@ export const zkOracleResponseMock = () => {
 export const passKeysResponseMock = () => {
   return {
     id: Field(
-      parseInt(
+      BigInt(
         [...'qaJp7BwUkIObDyRE5o_xNg'].map((char) => char.charCodeAt(0)).join('')
       )
     ),
@@ -94,9 +94,13 @@ export const passKeysResponseMock = () => {
   };
 };
 
-// Convert string to concatenated ASCII values
 export const encodeToAsciiNumber = (str: string) => {
-  return parseInt([...str].map((char) => char.charCodeAt(0)).join(''));
+  return BigInt(
+    str
+      .split('')
+      .map((char) => char.charCodeAt(0))
+      .join('')
+  );
 };
 
 // Convert concatenated ASCII values back to string
