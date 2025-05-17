@@ -7,8 +7,10 @@ import {
 
 import {
   PersonalData,
-  zkOracleResponseMock,
-  PassKeysParams,
+  PassKeys,
+  CreatorAccount,
+  personalDataResponseMock,
+  creatorAccountResponseMock,
   passKeysResponseMock,
   Secp256r1,
 } from './proof.utils.js';
@@ -19,7 +21,6 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
-  CircuitString,
   Signature,
   JsonProof,
   Cache,
@@ -49,8 +50,8 @@ describe('ProofOfNationality', () => {
     this zkProgram.
   */
   it('zkProgram: verifies zkOracle response data', async () => {
-    const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData(zkOracleResponse);
+    const personalData_ = personalDataResponseMock();
+    const personalData = new PersonalData(personalData_);
     const validSignature = personalData.signature.verify(
       personalData.publicKey,
       personalData.toFields()
@@ -59,22 +60,18 @@ describe('ProofOfNationality', () => {
   });
 
   it('zkProgram: produces proof', async () => {
-    const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData(zkOracleResponse);
-    const creatorPrivateKey = PrivateKey.random();
-    const creatorPublicKey = creatorPrivateKey.toPublicKey();
-    const creatorDataSignature = Signature.create(
-      creatorPrivateKey,
-      personalData.toFields()
-    );
-    const passKeysParams = new PassKeysParams(passKeysResponseMock());
+    const personalData_ = personalDataResponseMock();
+    const personalData = new PersonalData(personalData_);
+
+    const accountParams = creatorAccountResponseMock(personalData.toFields());
+    const creatorAccount = new CreatorAccount(accountParams);
+
+    const passKeys = new PassKeys(passKeysResponseMock());
 
     const { proof } = await proofOfNationality.proveNationality(
       personalData,
-      personalData.signature,
-      creatorDataSignature,
-      creatorPublicKey,
-      passKeysParams
+      creatorAccount,
+      passKeys
     );
     const proofJson = proof.toJSON();
 
@@ -113,7 +110,7 @@ describe('ProofOfNationality', () => {
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
-    ).toBe(creatorPublicKey.toBase58());
+    ).toBe(creatorAccount.publicKey.toBase58());
 
     // passkey public key
     const passKeysX = proofJson.publicOutput
@@ -126,8 +123,8 @@ describe('ProofOfNationality', () => {
       x: passKeysX,
       y: passKeysY,
     }).toBigint();
-    expect(passkeysPublicKey.x).toBe(passKeysParams.publicKey.toBigint().x);
-    expect(passkeysPublicKey.y).toBe(passKeysParams.publicKey.toBigint().y);
+    expect(passkeysPublicKey.x).toBe(passKeys.publicKey.toBigint().x);
+    expect(passkeysPublicKey.y).toBe(passKeys.publicKey.toBigint().y);
 
     // personal data mocked flag
     expect(proofJson.publicOutput[11]).toBe('1');
@@ -179,22 +176,18 @@ describe('ProofOfNationality', () => {
     await localDeploy();
 
     // create the zkProgram proof
-    const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData(zkOracleResponse);
-    const creatorPrivateKey = PrivateKey.random();
-    const creatorPublicKey = creatorPrivateKey.toPublicKey();
-    const creatorDataSignature = Signature.create(
-      creatorPrivateKey,
-      personalData.toFields()
-    );
-    const passKeysParams = new PassKeysParams(passKeysResponseMock());
+    const personalData_ = personalDataResponseMock();
+    const personalData = new PersonalData(personalData_);
+
+    const accountParams = creatorAccountResponseMock(personalData.toFields());
+    const creatorAccount = new CreatorAccount(accountParams);
+
+    const passKeys = new PassKeys(passKeysResponseMock());
 
     const { proof } = await proofOfNationality.proveNationality(
       personalData,
-      personalData.signature,
-      creatorDataSignature,
-      creatorPublicKey,
-      passKeysParams
+      creatorAccount,
+      passKeys
     );
     const proofJson = proof.toJSON();
 

@@ -1,7 +1,6 @@
 import {
   Field,
   method,
-  Signature,
   SmartContract,
   Permissions,
   PublicKey,
@@ -9,7 +8,12 @@ import {
   ZkProgram,
 } from 'o1js';
 
-import { PersonalData, PassKeysParams, Secp256r1 } from './proof.utils.js';
+import {
+  PersonalData,
+  PassKeys,
+  Secp256r1,
+  CreatorAccount,
+} from './proof.utils.js';
 
 import { parseDateFromPNO } from './ProofOfAge.utils.js';
 
@@ -30,16 +34,14 @@ export const proofOfAge = ZkProgram({
     proveAge: {
       privateInputs: [
         PersonalData,
-        Signature, // creator wallet signature
-        PublicKey, // creator wallet public key
-        PassKeysParams, // passkeys params
+        CreatorAccount,
+        PassKeys, // passkeys params
       ],
       async method(
         ageToProveInYears: Field,
         personalData: PersonalData,
-        creatorSignature: Signature,
-        creatorPublicKey: PublicKey,
-        PassKeysParams: PassKeysParams
+        creatorAccount: CreatorAccount,
+        passKeys: PassKeys
       ) {
         /*
           Validate ageToProveInYears input to make sure we do not go into the negatives 
@@ -74,8 +76,8 @@ export const proofOfAge = ZkProgram({
           prompting the user to sign a superficial message and provide evidence of ownership 
           of the corresponding account.
         */
-        const validSignatureWallet = creatorSignature.verify(
-          creatorPublicKey,
+        const validSignatureWallet = creatorAccount.signature.verify(
+          creatorAccount.publicKey,
           personalData.toFields()
         );
         validSignatureWallet.assertTrue();
@@ -85,11 +87,10 @@ export const proofOfAge = ZkProgram({
           same as with creatorSignature. In fact this is a better replacement for it. We can 
           depreciate creatorSignature in the future.  
         */
-        const validSignaturePassKeys =
-          PassKeysParams.signature.verifySignedHash(
-            PassKeysParams.payload,
-            PassKeysParams.publicKey
-          );
+        const validSignaturePassKeys = passKeys.signature.verifySignedHash(
+          passKeys.payload,
+          passKeys.publicKey
+        );
         validSignaturePassKeys.assertTrue();
 
         // parse date of birth from pno
@@ -109,9 +110,9 @@ export const proofOfAge = ZkProgram({
           publicOutput: {
             ageToProveInYears: ageToProveInYears,
             currentDate: personalData.currentDate,
-            creatorPublicKey: creatorPublicKey,
-            passkeysPublicKey: PassKeysParams.publicKey,
-            passkeysId: PassKeysParams.id,
+            creatorPublicKey: creatorAccount.publicKey,
+            passkeysPublicKey: passKeys.publicKey,
+            passkeysId: passKeys.id,
             isMockData: personalData.isMockData,
           },
         };

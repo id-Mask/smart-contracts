@@ -9,7 +9,12 @@ import {
   ZkProgram,
 } from 'o1js';
 
-import { PersonalData, PassKeysParams, Secp256r1 } from './proof.utils.js';
+import {
+  PersonalData,
+  PassKeys,
+  CreatorAccount,
+  Secp256r1,
+} from './proof.utils.js';
 
 class PublicOutput extends Struct({
   nationality: Field,
@@ -28,20 +33,16 @@ export const proofOfNationality = ZkProgram({
     proveNationality: {
       privateInputs: [
         PersonalData,
-        Signature, // zkOracle data signature
-        Signature, // creator wallet signature
-        PublicKey, // creator wallet public key
-        PassKeysParams, // passkeys params
+        CreatorAccount,
+        PassKeys, // passkeys params
       ],
       async method(
         personalData: PersonalData,
-        signature: Signature,
-        creatorSignature: Signature,
-        creatorPublicKey: PublicKey,
-        PassKeysParams: PassKeysParams
+        creatorAccount: CreatorAccount,
+        PassKeys: PassKeys
       ) {
         // verify zkOracle data
-        const validSignatureOracle = signature.verify(
+        const validSignatureOracle = personalData.signature.verify(
           PublicKey.fromBase58(
             'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
           ),
@@ -50,18 +51,17 @@ export const proofOfNationality = ZkProgram({
         validSignatureOracle.assertTrue();
 
         // verify creator signature
-        const validSignatureWallet = creatorSignature.verify(
-          creatorPublicKey,
+        const validSignatureWallet = creatorAccount.signature.verify(
+          creatorAccount.publicKey,
           personalData.toFields()
         );
         validSignatureWallet.assertTrue();
 
         // verify passkeys signature
-        const validSignaturePassKeys =
-          PassKeysParams.signature.verifySignedHash(
-            PassKeysParams.payload,
-            PassKeysParams.publicKey
-          );
+        const validSignaturePassKeys = PassKeys.signature.verifySignedHash(
+          PassKeys.payload,
+          PassKeys.publicKey
+        );
         validSignaturePassKeys.assertTrue();
 
         /*
@@ -77,9 +77,9 @@ export const proofOfNationality = ZkProgram({
           publicOutput: {
             nationality: nationality,
             currentDate: personalData.currentDate,
-            creatorPublicKey: creatorPublicKey,
-            passkeysPublicKey: PassKeysParams.publicKey,
-            passkeysId: PassKeysParams.id,
+            creatorPublicKey: creatorAccount.publicKey,
+            passkeysPublicKey: PassKeys.publicKey,
+            passkeysId: PassKeys.id,
             isMockData: personalData.isMockData,
           },
         };

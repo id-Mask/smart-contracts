@@ -11,7 +11,7 @@ import {
   PublicKey,
 } from 'o1js';
 
-import { PersonalData, PassKeysParams, Secp256r1 } from './proof.utils.js';
+import { PersonalData, PassKeys, Secp256r1 } from './proof.utils.js';
 
 class PublicOutput extends Struct({
   hash: Field,
@@ -35,7 +35,7 @@ export const proofOfUniqueHuman = ZkProgram({
         Signature, // signature of unique secret value
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
-        PassKeysParams, // passkeys params
+        PassKeys, // passkeys params
       ],
       async method(
         personalData: PersonalData,
@@ -44,7 +44,7 @@ export const proofOfUniqueHuman = ZkProgram({
         secretValueSignature: Signature,
         creatorSignature: Signature,
         creatorPublicKey: PublicKey,
-        PassKeysParams: PassKeysParams
+        PassKeys: PassKeys
       ) {
         const oraclePublicKey = PublicKey.fromBase58(
           'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
@@ -82,11 +82,10 @@ export const proofOfUniqueHuman = ZkProgram({
         validSignatureWallet.assertTrue();
 
         // verify passkeys signature
-        const validSignaturePassKeys =
-          PassKeysParams.signature.verifySignedHash(
-            PassKeysParams.payload,
-            PassKeysParams.publicKey
-          );
+        const validSignaturePassKeys = PassKeys.signature.verifySignedHash(
+          PassKeys.payload,
+          PassKeys.publicKey
+        );
         validSignaturePassKeys.assertTrue();
 
         /*
@@ -106,8 +105,8 @@ export const proofOfUniqueHuman = ZkProgram({
             hash: hash,
             currentDate: personalData.currentDate,
             creatorPublicKey: creatorPublicKey,
-            passkeysPublicKey: PassKeysParams.publicKey,
-            passkeysId: PassKeysParams.id,
+            passkeysPublicKey: PassKeys.publicKey,
+            passkeysId: PassKeys.id,
             isMockData: personalData.isMockData,
           },
         };

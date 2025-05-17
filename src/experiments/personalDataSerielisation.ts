@@ -1,6 +1,6 @@
-import { PersonalData, zkOracleResponseMock } from '../proof.utils.js';
+import { PersonalData, personalDataResponseMock } from '../proof.utils.js';
 
-const data = zkOracleResponseMock();
+const data = personalDataResponseMock();
 const personalData = new PersonalData(data);
 const personalDataJSON = personalData.toJSON();
 const personalData_ = new PersonalData(personalDataJSON);

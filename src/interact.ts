@@ -3,12 +3,14 @@ import { proofOfAge, ProofOfAge } from './ProofOfAge.js';
 
 import {
   PersonalData,
-  zkOracleResponseMock,
-  PassKeysParams,
+  personalDataResponseMock,
+  PassKeys,
   passKeysResponseMock,
+  CreatorAccount,
+  creatorAccountResponseMock,
 } from './proof.utils.js';
 
-import { Field, Mina, PrivateKey, Signature } from 'o1js';
+import { Field, Mina, PrivateKey } from 'o1js';
 
 // check command line arg
 let deployAlias = process.argv[2];
@@ -65,23 +67,19 @@ console.log(verificationKey);
 try {
   console.log('build transaction and create proof...');
 
-  const zkOracleResponse = zkOracleResponseMock();
-  const personalData = new PersonalData(zkOracleResponse);
+  const personalData_ = personalDataResponseMock();
+  const personalData = new PersonalData(personalData_);
 
-  const creatorPrivateKey = PrivateKey.random();
-  const creatorPublicKey = creatorPrivateKey.toPublicKey();
-  const creatorDataSignature = Signature.create(
-    creatorPrivateKey,
-    personalData.toFields()
-  );
-  const passKeysParams = new PassKeysParams(passKeysResponseMock());
+  const accountParams = creatorAccountResponseMock(personalData.toFields());
+  const creatorAccountParams = new CreatorAccount(accountParams);
+
+  const passKeysParams = new PassKeys(passKeysResponseMock());
 
   const ageToProveInYears = 18;
   const { proof } = await proofOfAge.proveAge(
     Field(ageToProveInYears),
     personalData,
-    creatorDataSignature,
-    creatorPublicKey,
+    creatorAccountParams,
     passKeysParams
   );
 

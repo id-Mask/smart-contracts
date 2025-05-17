@@ -10,7 +10,7 @@ import {
   PublicKey,
 } from 'o1js';
 
-import { PersonalData, PassKeysParams, Secp256r1 } from './proof.utils.js';
+import { PersonalData, PassKeys, Secp256r1 } from './proof.utils.js';
 
 export class SanctionsData extends Struct({
   isMatched: Bool,
@@ -43,7 +43,7 @@ export const proofOfSanctions = ZkProgram({
         Signature, // zkOracle data signature (is matched data)
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
-        PassKeysParams, // passkeys params
+        PassKeys, // passkeys params
       ],
       async method(
         sanctionsData: SanctionsData,
@@ -52,7 +52,7 @@ export const proofOfSanctions = ZkProgram({
         oracleSignatureSanctionsData: Signature,
         creatorSignature: Signature,
         creatorPublicKey: PublicKey,
-        PassKeysParams: PassKeysParams
+        PassKeys: PassKeys
       ) {
         // verify zkOracle data (personal data)
         const validSignaturePersonalData = oracleSignaturePersonalData.verify(
@@ -80,11 +80,10 @@ export const proofOfSanctions = ZkProgram({
         validSignatureWallet.assertTrue();
 
         // verify passkeys signature
-        const validSignaturePassKeys =
-          PassKeysParams.signature.verifySignedHash(
-            PassKeysParams.payload,
-            PassKeysParams.publicKey
-          );
+        const validSignaturePassKeys = PassKeys.signature.verifySignedHash(
+          PassKeys.payload,
+          PassKeys.publicKey
+        );
         validSignaturePassKeys.assertTrue();
 
         // assert that search agains OFAC db yielded no results
@@ -95,8 +94,8 @@ export const proofOfSanctions = ZkProgram({
             minScore: sanctionsData.minScore,
             currentDate: sanctionsData.currentDate,
             creatorPublicKey: creatorPublicKey,
-            passkeysPublicKey: PassKeysParams.publicKey,
-            passkeysId: PassKeysParams.id,
+            passkeysPublicKey: PassKeys.publicKey,
+            passkeysId: PassKeys.id,
             isMockData: personalData.isMockData,
           },
         };

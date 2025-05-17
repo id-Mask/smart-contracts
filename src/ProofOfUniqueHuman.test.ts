@@ -9,8 +9,8 @@ import { getMockSecretValue } from './ProofOfUniqueHuman.utils.js';
 
 import {
   PersonalData,
-  zkOracleResponseMock,
-  PassKeysParams,
+  personalDataResponseMock,
+  PassKeys,
   passKeysResponseMock,
   Secp256r1,
 } from './proof.utils.js';
@@ -68,8 +68,8 @@ describe('ProofOfUniqueHuman', () => {
   });
 
   it('zkProgram: produces proof', async () => {
-    const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData(zkOracleResponse);
+    const personalData_ = personalDataResponseMock();
+    const personalData = new PersonalData(personalData_);
 
     const mockSecret = getMockSecretValue();
     const secretValue = CircuitString.fromString(mockSecret.secret);
@@ -80,7 +80,7 @@ describe('ProofOfUniqueHuman', () => {
       creatorPrivateKey,
       personalData.toFields()
     );
-    const passKeysParams = new PassKeysParams(passKeysResponseMock());
+    const passKeys = new PassKeys(passKeysResponseMock());
 
     const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
@@ -89,7 +89,7 @@ describe('ProofOfUniqueHuman', () => {
       Signature.fromJSON(mockSecret.signature),
       creatorDataSignature,
       creatorPublicKey,
-      passKeysParams
+      passKeys
     );
     const proofJson = proof.toJSON();
 
@@ -148,8 +148,8 @@ describe('ProofOfUniqueHuman', () => {
       x: passKeysX,
       y: passKeysY,
     }).toBigint();
-    expect(passkeysPublicKey.x).toBe(passKeysParams.publicKey.toBigint().x);
-    expect(passkeysPublicKey.y).toBe(passKeysParams.publicKey.toBigint().y);
+    expect(passkeysPublicKey.x).toBe(passKeys.publicKey.toBigint().x);
+    expect(passkeysPublicKey.y).toBe(passKeys.publicKey.toBigint().y);
 
     // personal data mocked flag
     expect(proofJson.publicOutput[11]).toBe('1');
@@ -200,8 +200,8 @@ describe('ProofOfUniqueHuman', () => {
   it('smart contract: consumes the proof and runs method', async () => {
     await localDeploy();
 
-    const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData(zkOracleResponse);
+    const personalData_ = personalDataResponseMock();
+    const personalData = new PersonalData(personalData_);
 
     const mockSecret = getMockSecretValue();
     const secretValue = CircuitString.fromString(mockSecret.secret);
@@ -212,7 +212,7 @@ describe('ProofOfUniqueHuman', () => {
       creatorPrivateKey,
       personalData.toFields()
     );
-    const passKeysParams = new PassKeysParams(passKeysResponseMock());
+    const passKeys = new PassKeys(passKeysResponseMock());
 
     const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
@@ -221,7 +221,7 @@ describe('ProofOfUniqueHuman', () => {
       Signature.fromJSON(mockSecret.signature),
       creatorDataSignature,
       creatorPublicKey,
-      passKeysParams
+      passKeys
     );
     const proofJson = proof.toJSON();
 

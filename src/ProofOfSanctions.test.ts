@@ -7,10 +7,10 @@ import {
 } from './ProofOfSanctions.js';
 
 import {
-  PassKeysParams,
+  PassKeys,
   passKeysResponseMock,
   PersonalData,
-  zkOracleResponseMock,
+  personalDataResponseMock,
   Secp256r1,
 } from './proof.utils.js';
 import { zkOracleSanctionsDataResponseMock } from './ProofOfSanctions.utils.js';
@@ -25,7 +25,6 @@ import {
   JsonProof,
   Bool,
   Cache,
-  CircuitString,
 } from 'o1js';
 
 import { Field3 } from 'o1js/dist/node/lib/provable/gadgets/foreign-field.js';
@@ -74,8 +73,8 @@ describe('ProofOfSanctions', () => {
 
   it('zkProgram: produces proof', async () => {
     // personal data
-    const zkOraclePersonalDataResponse = zkOracleResponseMock();
-    const personalData = new PersonalData(zkOraclePersonalDataResponse);
+    const personalData_ = personalDataResponseMock();
+    const personalData = new PersonalData(personalData_);
 
     // sanctions data
     const isMatched = false;
@@ -96,7 +95,7 @@ describe('ProofOfSanctions', () => {
     );
 
     // passkeys key pair
-    const passKeysParams = new PassKeysParams(passKeysResponseMock());
+    const passKeys = new PassKeys(passKeysResponseMock());
 
     const { proof } = await proofOfSanctions.proveSanctions(
       sanctionsData,
@@ -105,7 +104,7 @@ describe('ProofOfSanctions', () => {
       Signature.fromJSON(zkOracleResponseSanctionsData.signature),
       creatorDataSignature,
       creatorPublicKey,
-      passKeysParams
+      passKeys
     );
     const proofJson = proof.toJSON();
 
@@ -167,8 +166,8 @@ describe('ProofOfSanctions', () => {
       x: passKeysX,
       y: passKeysY,
     }).toBigint();
-    expect(passkeysPublicKey.x).toBe(passKeysParams.publicKey.toBigint().x);
-    expect(passkeysPublicKey.y).toBe(passKeysParams.publicKey.toBigint().y);
+    expect(passkeysPublicKey.x).toBe(passKeys.publicKey.toBigint().x);
+    expect(passkeysPublicKey.y).toBe(passKeys.publicKey.toBigint().y);
 
     // personal data mocked flag
     expect(proofJson.publicOutput[11]).toBe('1');
@@ -220,8 +219,8 @@ describe('ProofOfSanctions', () => {
     await localDeploy();
 
     // personal data
-    const zkOraclePersonalDataResponse = zkOracleResponseMock();
-    const personalData = new PersonalData(zkOraclePersonalDataResponse);
+    const personalData_ = personalDataResponseMock();
+    const personalData = new PersonalData(personalData_);
 
     // sanctions data
     const isMatched = false;
@@ -242,7 +241,7 @@ describe('ProofOfSanctions', () => {
     );
 
     // passkeys key pair
-    const passKeysParams = new PassKeysParams(passKeysResponseMock());
+    const passKeys = new PassKeys(passKeysResponseMock());
 
     const { proof } = await proofOfSanctions.proveSanctions(
       sanctionsData,
@@ -251,7 +250,7 @@ describe('ProofOfSanctions', () => {
       Signature.fromJSON(zkOracleResponseSanctionsData.signature),
       creatorDataSignature,
       creatorPublicKey,
-      passKeysParams
+      passKeys
     );
     const proofJson = proof.toJSON();
 

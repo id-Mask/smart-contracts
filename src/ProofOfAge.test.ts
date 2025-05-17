@@ -3,8 +3,10 @@ import { proofOfAge, ProofOfAge, ProofOfAgeProof } from './ProofOfAge.js';
 
 import {
   PersonalData,
-  zkOracleResponseMock,
-  PassKeysParams,
+  CreatorAccount,
+  PassKeys,
+  personalDataResponseMock,
+  creatorAccountResponseMock,
   passKeysResponseMock,
   Secp256r1,
 } from './proof.utils.js';
@@ -18,7 +20,6 @@ import {
   PublicKey,
   AccountUpdate,
   CircuitString,
-  Signature,
   JsonProof,
   Cache,
 } from 'o1js';
@@ -47,8 +48,8 @@ describe('ProofOfAge', () => {
     this zkProgram.
   */
   it('zkProgram: verifies zkOracle response data', async () => {
-    const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData(zkOracleResponse);
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
     const validSignature = personalData.signature.verify(
       personalData.publicKey,
       personalData.toFields()
@@ -57,31 +58,28 @@ describe('ProofOfAge', () => {
   });
 
   it('zkProgram: parses DoB', async () => {
-    const zkOracleResponse = zkOracleResponseMock();
+    const personalDataParams = personalDataResponseMock();
     const dateOfBirth = parseDateFromPNO(
-      CircuitString.fromString(zkOracleResponse.pno)
+      CircuitString.fromString(personalDataParams.pno)
     );
     expect(dateOfBirth).toBeDefined();
   });
 
   it('zkProgram: produces proof', async () => {
-    const zkOracleResponse = zkOracleResponseMock();
     const ageToProveInYears = 18;
-    const personalData = new PersonalData(zkOracleResponse);
-    const creatorPrivateKey = PrivateKey.random();
-    const creatorPublicKey = creatorPrivateKey.toPublicKey();
-    const creatorDataSignature = Signature.create(
-      creatorPrivateKey,
-      personalData.toFields()
-    );
-    const passKeysParams = new PassKeysParams(passKeysResponseMock());
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
+
+    const accountParams = creatorAccountResponseMock(personalData.toFields());
+    const creatorAccount = new CreatorAccount(accountParams);
+
+    const passKeys = new PassKeys(passKeysResponseMock());
 
     const { proof } = await proofOfAge.proveAge(
       Field(ageToProveInYears),
       personalData,
-      creatorDataSignature,
-      creatorPublicKey,
-      passKeysParams
+      creatorAccount,
+      passKeys
     );
 
     const proofJson = proof.toJSON();
@@ -121,7 +119,7 @@ describe('ProofOfAge', () => {
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
-    ).toBe(creatorPublicKey.toBase58());
+    ).toBe(accountParams.publicKey.toBase58());
 
     // passkey public key
     const passKeysX = proofJson.publicOutput
@@ -134,8 +132,8 @@ describe('ProofOfAge', () => {
       x: passKeysX,
       y: passKeysY,
     }).toBigint();
-    expect(passkeysPublicKey.x).toBe(passKeysParams.publicKey.toBigint().x);
-    expect(passkeysPublicKey.y).toBe(passKeysParams.publicKey.toBigint().y);
+    expect(passkeysPublicKey.x).toBe(passKeys.publicKey.toBigint().x);
+    expect(passkeysPublicKey.y).toBe(passKeys.publicKey.toBigint().y);
 
     // personal data mocked flag
     expect(proofJson.publicOutput[11]).toBe('1');
@@ -188,23 +186,21 @@ describe('ProofOfAge', () => {
     await localDeploy();
 
     // create the zkProgram proof
-    const zkOracleResponse = zkOracleResponseMock();
     const ageToProveInYears = 18;
-    const personalData = new PersonalData(zkOracleResponse);
-    const creatorPrivateKey = PrivateKey.random();
-    const creatorPublicKey = creatorPrivateKey.toPublicKey();
-    const creatorDataSignature = Signature.create(
-      creatorPrivateKey,
-      personalData.toFields()
-    );
-    const passKeysParams = new PassKeysParams(passKeysResponseMock());
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
+    const ageToProveInYears = 18;
+
+    const accountParams = creatorAccountResponseMock(personalData.toFields());
+    const creatorAccount = new CreatorAccount(accountParams);
+
+    const passKeys = new PassKeys(passKeysResponseMock());
 
     const { proof } = await proofOfAge.proveAge(
       Field(ageToProveInYears),
       personalData,
-      creatorDataSignature,
-      creatorPublicKey,
-      passKeysParams
+      creatorAccount,
+      passKeys
     );
     const proofJson = proof.toJSON();
 

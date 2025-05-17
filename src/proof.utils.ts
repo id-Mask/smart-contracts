@@ -1,7 +1,5 @@
-import 'dotenv/config';
 import {
   Field,
-  PrivateKey,
   PublicKey,
   Signature,
   CircuitString,
@@ -9,6 +7,7 @@ import {
   createForeignCurve,
   createEcdsa,
   Crypto,
+  PrivateKey,
 } from 'o1js';
 
 export class Secp256r1 extends createForeignCurve(
@@ -16,7 +15,7 @@ export class Secp256r1 extends createForeignCurve(
 ) {}
 export class EcdsaP256 extends createEcdsa(Secp256r1) {}
 
-export class PassKeysParams extends Struct({
+export class PassKeys extends Struct({
   id: Field,
   publicKey: Secp256r1,
   payload: Secp256r1.Scalar,
@@ -123,7 +122,22 @@ export class PersonalData extends Struct({
   }
 }
 
-export const zkOracleResponseMock = () => {
+export class CreatorAccount extends Struct({
+  publicKey: PublicKey,
+  signature: Signature,
+}) {}
+
+export const creatorAccountResponseMock = (fieldArray: Field[]) => {
+  const creatorPrivateKey = PrivateKey.random();
+  const creatorPublicKey = creatorPrivateKey.toPublicKey();
+  const creatorDataSignature = Signature.create(creatorPrivateKey, fieldArray);
+  return {
+    publicKey: creatorPublicKey,
+    signature: creatorDataSignature,
+  };
+};
+
+export const personalDataResponseMock = () => {
   return {
     name: 'Hilary',
     surname: 'Ouse',
