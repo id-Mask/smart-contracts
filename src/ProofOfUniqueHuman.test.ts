@@ -69,14 +69,7 @@ describe('ProofOfUniqueHuman', () => {
 
   it('zkProgram: produces proof', async () => {
     const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData({
-      name: CircuitString.fromString(zkOracleResponse.data.name),
-      surname: CircuitString.fromString(zkOracleResponse.data.surname),
-      country: CircuitString.fromString(zkOracleResponse.data.country),
-      pno: CircuitString.fromString(zkOracleResponse.data.pno),
-      currentDate: Field(zkOracleResponse.data.currentDate),
-      isMockData: Field(zkOracleResponse.data.isMockData),
-    });
+    const personalData = new PersonalData(zkOracleResponse);
 
     const mockSecret = getMockSecretValue();
     const secretValue = CircuitString.fromString(mockSecret.secret);
@@ -91,7 +84,7 @@ describe('ProofOfUniqueHuman', () => {
 
     const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
-      Signature.fromJSON(zkOracleResponse.signature),
+      personalData.signature,
       secretValue,
       Signature.fromJSON(mockSecret.signature),
       creatorDataSignature,
@@ -208,14 +201,7 @@ describe('ProofOfUniqueHuman', () => {
     await localDeploy();
 
     const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData({
-      name: CircuitString.fromString(zkOracleResponse.data.name),
-      surname: CircuitString.fromString(zkOracleResponse.data.surname),
-      country: CircuitString.fromString(zkOracleResponse.data.country),
-      pno: CircuitString.fromString(zkOracleResponse.data.pno),
-      currentDate: Field(zkOracleResponse.data.currentDate),
-      isMockData: Field(zkOracleResponse.data.isMockData),
-    });
+    const personalData = new PersonalData(zkOracleResponse);
 
     const mockSecret = getMockSecretValue();
     const secretValue = CircuitString.fromString(mockSecret.secret);
@@ -230,7 +216,7 @@ describe('ProofOfUniqueHuman', () => {
 
     const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
-      Signature.fromJSON(zkOracleResponse.signature),
+      personalData.signature,
       secretValue,
       Signature.fromJSON(mockSecret.signature),
       creatorDataSignature,

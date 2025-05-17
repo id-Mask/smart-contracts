@@ -50,17 +50,9 @@ describe('ProofOfNationality', () => {
   */
   it('zkProgram: verifies zkOracle response data', async () => {
     const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData({
-      name: CircuitString.fromString(zkOracleResponse.data.name),
-      surname: CircuitString.fromString(zkOracleResponse.data.surname),
-      country: CircuitString.fromString(zkOracleResponse.data.country),
-      pno: CircuitString.fromString(zkOracleResponse.data.pno),
-      currentDate: Field(zkOracleResponse.data.currentDate),
-      isMockData: Field(zkOracleResponse.data.isMockData),
-    });
-    const signature = Signature.fromJSON(zkOracleResponse.signature);
-    const validSignature = signature.verify(
-      PublicKey.fromBase58(zkOracleResponse.publicKey),
+    const personalData = new PersonalData(zkOracleResponse);
+    const validSignature = personalData.signature.verify(
+      personalData.publicKey,
       personalData.toFields()
     );
     expect(validSignature.toBoolean()).toBe(true);
@@ -68,15 +60,7 @@ describe('ProofOfNationality', () => {
 
   it('zkProgram: produces proof', async () => {
     const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData({
-      name: CircuitString.fromString(zkOracleResponse.data.name),
-      surname: CircuitString.fromString(zkOracleResponse.data.surname),
-      country: CircuitString.fromString(zkOracleResponse.data.country),
-      pno: CircuitString.fromString(zkOracleResponse.data.pno),
-      currentDate: Field(zkOracleResponse.data.currentDate),
-      isMockData: Field(zkOracleResponse.data.isMockData),
-    });
-
+    const personalData = new PersonalData(zkOracleResponse);
     const creatorPrivateKey = PrivateKey.random();
     const creatorPublicKey = creatorPrivateKey.toPublicKey();
     const creatorDataSignature = Signature.create(
@@ -87,7 +71,7 @@ describe('ProofOfNationality', () => {
 
     const { proof } = await proofOfNationality.proveNationality(
       personalData,
-      Signature.fromJSON(zkOracleResponse.signature),
+      personalData.signature,
       creatorDataSignature,
       creatorPublicKey,
       passKeysParams
@@ -196,15 +180,7 @@ describe('ProofOfNationality', () => {
 
     // create the zkProgram proof
     const zkOracleResponse = zkOracleResponseMock();
-    const personalData = new PersonalData({
-      name: CircuitString.fromString(zkOracleResponse.data.name),
-      surname: CircuitString.fromString(zkOracleResponse.data.surname),
-      country: CircuitString.fromString(zkOracleResponse.data.country),
-      pno: CircuitString.fromString(zkOracleResponse.data.pno),
-      currentDate: Field(zkOracleResponse.data.currentDate),
-      isMockData: Field(zkOracleResponse.data.isMockData),
-    });
-
+    const personalData = new PersonalData(zkOracleResponse);
     const creatorPrivateKey = PrivateKey.random();
     const creatorPublicKey = creatorPrivateKey.toPublicKey();
     const creatorDataSignature = Signature.create(
@@ -215,7 +191,7 @@ describe('ProofOfNationality', () => {
 
     const { proof } = await proofOfNationality.proveNationality(
       personalData,
-      Signature.fromJSON(zkOracleResponse.signature),
+      personalData.signature,
       creatorDataSignature,
       creatorPublicKey,
       passKeysParams

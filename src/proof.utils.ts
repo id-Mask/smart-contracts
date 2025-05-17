@@ -2,6 +2,7 @@ import 'dotenv/config';
 import {
   Field,
   PrivateKey,
+  PublicKey,
   Signature,
   CircuitString,
   Struct,
@@ -56,63 +57,6 @@ export class PassKeysParams extends Struct({
   }
 }
 
-// export class PersonalData extends Struct({
-//   name: CircuitString,
-//   surname: CircuitString,
-//   country: CircuitString,
-//   pno: CircuitString,
-//   currentDate: Field,
-//   isMockData: Field,
-//   // TODO: add signature
-// }) {
-//   constructor(data: {
-//     name: string;
-//     surname: string;
-//     country: string;
-//     pno: string;
-//     currentDate: string;
-//     isMockData: bigint;
-//   }) {
-//     super({
-//       name: CircuitString.fromString(data.name),
-//       surname: CircuitString.fromString(data.surname),
-//       country: CircuitString.fromString(data.country),
-//       pno: CircuitString.fromString(data.pno),
-//       currentDate: Field(data.currentDate),
-//       isMockData: Field(data.isMockData),
-//     });
-//   }
-
-//   toJSON(): {
-//     name: string;
-//     surname: string;
-//     country: string;
-//     pno: string;
-//     currentDate: string; // string to keep consistent with bigint / hex
-//     isMockData: bigint;
-//   } {
-//     return {
-//       name: this.name.toString(),
-//       surname: this.surname.toString(),
-//       country: this.country.toString(),
-//       pno: this.pno.toString(),
-//       currentDate: this.currentDate.toString(),
-//       isMockData: this.isMockData.toBigInt(),
-//     };
-//   }
-
-//   toFields(): Field[] {
-//     return [
-//       ...this.name.values.map((item) => item.toField()),
-//       ...this.surname.values.map((item) => item.toField()),
-//       ...this.country.values.map((item) => item.toField()),
-//       ...this.pno.values.map((item) => item.toField()),
-//       this.currentDate,
-//       this.isMockData,
-//     ];
-//   }
-// }
-
 export class PersonalData extends Struct({
   name: CircuitString,
   surname: CircuitString,
@@ -120,8 +64,53 @@ export class PersonalData extends Struct({
   pno: CircuitString,
   currentDate: Field,
   isMockData: Field,
+  signature: Signature,
+  publicKey: PublicKey,
 }) {
-  // method for signature creation and verification
+  constructor(data: {
+    name: string;
+    surname: string;
+    country: string;
+    pno: string;
+    currentDate: number;
+    isMockData: number;
+    signature: object;
+    publicKey: string;
+  }) {
+    super({
+      name: CircuitString.fromString(data.name),
+      surname: CircuitString.fromString(data.surname),
+      country: CircuitString.fromString(data.country),
+      pno: CircuitString.fromString(data.pno),
+      currentDate: Field(data.currentDate),
+      isMockData: Field(data.isMockData),
+      signature: Signature.fromJSON(data.signature),
+      publicKey: PublicKey.fromJSON(data.publicKey),
+    });
+  }
+
+  toJSON(): {
+    name: string;
+    surname: string;
+    country: string;
+    pno: string;
+    currentDate: number;
+    isMockData: number;
+    signature: object;
+    publicKey: string;
+  } {
+    return {
+      name: this.name.toString(),
+      surname: this.surname.toString(),
+      country: this.country.toString(),
+      pno: this.pno.toString(),
+      currentDate: Number(this.currentDate.toBigInt()),
+      isMockData: Number(this.isMockData.toBigInt()),
+      signature: this.signature.toJSON(),
+      publicKey: this.publicKey.toBase58(),
+    };
+  }
+
   toFields(): Field[] {
     return [
       ...this.name.values.map((item) => item.toField()),
@@ -135,34 +124,18 @@ export class PersonalData extends Struct({
 }
 
 export const zkOracleResponseMock = () => {
-  const TESTING_PRIVATE_KEY: string = process.env.TESTING_PRIVATE_KEY as string;
-  const privateKey = PrivateKey.fromBase58(TESTING_PRIVATE_KEY);
-  const publicKey = privateKey.toPublicKey();
-
-  const data = {
+  return {
     name: 'Hilary',
     surname: 'Ouse',
     country: 'EE',
     pno: 'PNOLT-41111117143',
     currentDate: 20231024,
     isMockData: 1,
-  };
-
-  const personalData = new PersonalData({
-    name: CircuitString.fromString(data.name),
-    surname: CircuitString.fromString(data.surname),
-    country: CircuitString.fromString(data.country),
-    pno: CircuitString.fromString(data.pno),
-    currentDate: Field(data.currentDate),
-    isMockData: Field(data.isMockData),
-  });
-
-  const signature = Signature.create(privateKey, personalData.toFields());
-
-  return {
-    data: data,
-    signature: signature.toJSON(),
-    publicKey: publicKey.toBase58(),
+    signature: {
+      r: '1555738747717651780478288099752602555559880124819062656060465821464020291069',
+      s: '22752634323814692994123893217485761039113123781541011317453581832502889787070',
+    },
+    publicKey: 'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN',
   };
 };
 

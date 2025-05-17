@@ -4,7 +4,6 @@ import {
   toPublicKeyHex,
   passKeysResponseMock,
   bigintToHex,
-  PersonalData,
 } from '../proof.utils.js';
 
 const passkeys = new PassKeysParams(passKeysResponseMock());
@@ -36,18 +35,3 @@ const params = {
 };
 const passkeys_ = new PassKeysParams(params);
 console.log(passkeys_.toJSON());
-
-// new personal data logic
-
-// const data = {
-//   name: 'Hilary',
-//   surname: 'Ouse',
-//   country: 'EE',
-//   pno: 'PNOLT-41111117143',
-//   currentDate: 20231024,
-//   isMockData: 1,
-// };
-
-// const personalData = new PersonalData(data)
-// console.log(personalData.toJSON())
-// console.log(personalData.toFields())

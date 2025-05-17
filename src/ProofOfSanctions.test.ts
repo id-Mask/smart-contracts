@@ -75,18 +75,7 @@ describe('ProofOfSanctions', () => {
   it('zkProgram: produces proof', async () => {
     // personal data
     const zkOraclePersonalDataResponse = zkOracleResponseMock();
-    const personalData = new PersonalData({
-      name: CircuitString.fromString(zkOraclePersonalDataResponse.data.name),
-      surname: CircuitString.fromString(
-        zkOraclePersonalDataResponse.data.surname
-      ),
-      country: CircuitString.fromString(
-        zkOraclePersonalDataResponse.data.country
-      ),
-      pno: CircuitString.fromString(zkOraclePersonalDataResponse.data.pno),
-      currentDate: Field(zkOraclePersonalDataResponse.data.currentDate),
-      isMockData: Field(zkOraclePersonalDataResponse.data.isMockData),
-    });
+    const personalData = new PersonalData(zkOraclePersonalDataResponse);
 
     // sanctions data
     const isMatched = false;
@@ -112,7 +101,7 @@ describe('ProofOfSanctions', () => {
     const { proof } = await proofOfSanctions.proveSanctions(
       sanctionsData,
       personalData,
-      Signature.fromJSON(zkOraclePersonalDataResponse.signature),
+      personalData.signature,
       Signature.fromJSON(zkOracleResponseSanctionsData.signature),
       creatorDataSignature,
       creatorPublicKey,
@@ -232,18 +221,7 @@ describe('ProofOfSanctions', () => {
 
     // personal data
     const zkOraclePersonalDataResponse = zkOracleResponseMock();
-    const personalData = new PersonalData({
-      name: CircuitString.fromString(zkOraclePersonalDataResponse.data.name),
-      surname: CircuitString.fromString(
-        zkOraclePersonalDataResponse.data.surname
-      ),
-      country: CircuitString.fromString(
-        zkOraclePersonalDataResponse.data.country
-      ),
-      pno: CircuitString.fromString(zkOraclePersonalDataResponse.data.pno),
-      currentDate: Field(zkOraclePersonalDataResponse.data.currentDate),
-      isMockData: Field(zkOraclePersonalDataResponse.data.isMockData),
-    });
+    const personalData = new PersonalData(zkOraclePersonalDataResponse);
 
     // sanctions data
     const isMatched = false;
@@ -269,7 +247,7 @@ describe('ProofOfSanctions', () => {
     const { proof } = await proofOfSanctions.proveSanctions(
       sanctionsData,
       personalData,
-      Signature.fromJSON(zkOraclePersonalDataResponse.signature),
+      personalData.signature,
       Signature.fromJSON(zkOracleResponseSanctionsData.signature),
       creatorDataSignature,
       creatorPublicKey,

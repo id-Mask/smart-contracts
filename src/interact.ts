@@ -8,7 +8,7 @@ import {
   passKeysResponseMock,
 } from './proof.utils.js';
 
-import { Field, Mina, PrivateKey, CircuitString, Signature } from 'o1js';
+import { Field, Mina, PrivateKey, Signature } from 'o1js';
 
 // check command line arg
 let deployAlias = process.argv[2];
@@ -33,7 +33,9 @@ type Config = {
     }
   >;
 };
-let configJson: Config = JSON.parse(await fs.readFile('config.json', 'utf8'));
+let configJson: Config = JSON.parse(
+  await fs.readFile('config_devnet.json', 'utf8')
+);
 let config = configJson.deployAliases[deployAlias];
 let feepayerKeysBase58: { privateKey: string; publicKey: string } = JSON.parse(
   await fs.readFile(config.feepayerKeyPath, 'utf8')
@@ -58,19 +60,13 @@ let sentTx;
 // compile the contract to create prover keys
 console.log('compile the contracts...');
 await proofOfAge.compile();
-await ProofOfAge.compile();
+const { verificationKey } = await ProofOfAge.compile();
+console.log(verificationKey);
 try {
   console.log('build transaction and create proof...');
 
   const zkOracleResponse = zkOracleResponseMock();
-  const personalData = new PersonalData({
-    name: CircuitString.fromString(zkOracleResponse.data.name),
-    surname: CircuitString.fromString(zkOracleResponse.data.surname),
-    country: CircuitString.fromString(zkOracleResponse.data.country),
-    pno: CircuitString.fromString(zkOracleResponse.data.pno),
-    currentDate: Field(zkOracleResponse.data.currentDate),
-    isMockData: Field(zkOracleResponse.data.isMockData),
-  });
+  const personalData = new PersonalData(zkOracleResponse);
 
   const creatorPrivateKey = PrivateKey.random();
   const creatorPublicKey = creatorPrivateKey.toPublicKey();
@@ -84,7 +80,6 @@ try {
   const { proof } = await proofOfAge.proveAge(
     Field(ageToProveInYears),
     personalData,
-    Signature.fromJSON(zkOracleResponse.signature),
     creatorDataSignature,
     creatorPublicKey,
     passKeysParams
@@ -97,6 +92,7 @@ try {
     }
   );
   await tx.prove();
+  console.log(tx.toJSON());
   console.log('send transaction...');
   sentTx = await tx.sign([feepayerKey]).send();
 } catch (err) {

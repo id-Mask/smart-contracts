@@ -82,19 +82,12 @@ let zkAppKeyBase58: { privateKey: string; publicKey: string } = JSON.parse(
 let zkAppKey = PrivateKey.fromBase58(zkAppKeyBase58.privateKey);
 let zkAppAddress = zkAppKey.toPublicKey();
 
-const deployData = {
-  program: deployAlias,
-  toPublicKey: zkAppKeyBase58.publicKey,
-};
-console.log(JSON.stringify(deployData, null, 2));
-
 // fee payer keys
 let feePayerKey = PrivateKey.fromBase58(feePayerBase58.privateKey);
 let feePayerAddress = feePayerKey.toPublicKey();
 
 // set up Mina instance
 const Network = Mina.Network({
-  networkId: 'mainnet',
   mina: config.url,
 });
 const fee = Number(config.fee) * 1e9;
@@ -110,6 +103,7 @@ console.log('compile the contracts...');
 const cache = Cache.FileSystem('./cache');
 await proofs[deployAlias].zkProgram.compile({ cache: cache });
 const { verificationKey } = await proofs[deployAlias].smartContract.compile();
+console.log('local vk:', verificationKey);
 const zkApp = new proofs[deployAlias].smartContract(zkAppAddress);
 
 // create transaction, sign and send
@@ -118,17 +112,17 @@ let tx = await Mina.transaction(
   { sender: feePayerAddress, fee: fee },
   async () => {
     // deploy to a new address (empty account)
-    await zkApp.deploy({});
-    zkApp.account.verificationKey.set(verificationKey);
-    zkApp.account.zkappUri.set('https://idmask.xyz');
+    // await zkApp.deploy({});
+    // zkApp.account.verificationKey.set(verificationKey);
+    // zkApp.account.zkappUri.set('https://idmask.xyz');
 
     // redeploy by setting new verificationKey
     // https://discord.com/channels/484437221055922177/1086325036643790998/1088450285292224562
     // https://discord.com/channels/484437221055922177/915745847692636181/1000675690842177547
     // https://discord.com/channels/484437221055922177/1168554028851011614
-    // let update = AccountUpdate.createSigned(zkAppAddress);
-    // update.account.verificationKey.set(verificationKey);
-    // update.account.zkappUri.set('https://idmask.xyz');
+    let update = AccountUpdate.createSigned(zkAppAddress);
+    update.account.verificationKey.set(verificationKey);
+    update.account.zkappUri.set('https://idmask.xyz');
     // update.sign(zkAppKey);
   }
 );

@@ -30,7 +30,6 @@ export const proofOfAge = ZkProgram({
     proveAge: {
       privateInputs: [
         PersonalData,
-        Signature, // zkOracle data signature
         Signature, // creator wallet signature
         PublicKey, // creator wallet public key
         PassKeysParams, // passkeys params
@@ -38,7 +37,6 @@ export const proofOfAge = ZkProgram({
       async method(
         ageToProveInYears: Field,
         personalData: PersonalData,
-        oracleSignature: Signature,
         creatorSignature: Signature,
         creatorPublicKey: PublicKey,
         PassKeysParams: PassKeysParams
@@ -58,7 +56,7 @@ export const proofOfAge = ZkProgram({
           untampered with and aligns precisely with the information provided by 
           the KYC/digital ID provider.
         */
-        const validSignatureOracle = oracleSignature.verify(
+        const validSignatureOracle = personalData.signature.verify(
           PublicKey.fromBase58(
             'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
           ),
