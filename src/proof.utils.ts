@@ -20,7 +20,98 @@ export class PassKeysParams extends Struct({
   publicKey: Secp256r1,
   payload: Secp256r1.Scalar,
   signature: EcdsaP256,
-}) {}
+}) {
+  constructor(data: {
+    id: string;
+    publicKey: string;
+    payload: string;
+    signature: string;
+  }) {
+    super({
+      id: Field(encodeToAsciiNumber(data.id)),
+      publicKey: Secp256r1.fromHex(data.publicKey),
+      payload: Secp256r1.Scalar.from(data.payload),
+      signature: EcdsaP256.fromHex(data.signature),
+    });
+  }
+
+  toJSON(): {
+    id: string;
+    publicKey: string;
+    payload: string;
+    signature: string;
+  } {
+    return {
+      id: decodeFromAsciiNumber(this.id.toBigInt()),
+      publicKey: toPublicKeyHex(
+        this.publicKey.x.toBigInt(),
+        this.publicKey.y.toBigInt()
+      ),
+      payload: '0x' + this.payload.toBigInt().toString(16),
+      signature: toPublicKeyHex(
+        this.signature.r.toBigInt(),
+        this.signature.s.toBigInt()
+      ).replace(/^0x04/, '0x'),
+    };
+  }
+}
+
+// export class PersonalData extends Struct({
+//   name: CircuitString,
+//   surname: CircuitString,
+//   country: CircuitString,
+//   pno: CircuitString,
+//   currentDate: Field,
+//   isMockData: Field,
+//   // TODO: add signature
+// }) {
+//   constructor(data: {
+//     name: string;
+//     surname: string;
+//     country: string;
+//     pno: string;
+//     currentDate: string;
+//     isMockData: bigint;
+//   }) {
+//     super({
+//       name: CircuitString.fromString(data.name),
+//       surname: CircuitString.fromString(data.surname),
+//       country: CircuitString.fromString(data.country),
+//       pno: CircuitString.fromString(data.pno),
+//       currentDate: Field(data.currentDate),
+//       isMockData: Field(data.isMockData),
+//     });
+//   }
+
+//   toJSON(): {
+//     name: string;
+//     surname: string;
+//     country: string;
+//     pno: string;
+//     currentDate: string; // string to keep consistent with bigint / hex
+//     isMockData: bigint;
+//   } {
+//     return {
+//       name: this.name.toString(),
+//       surname: this.surname.toString(),
+//       country: this.country.toString(),
+//       pno: this.pno.toString(),
+//       currentDate: this.currentDate.toString(),
+//       isMockData: this.isMockData.toBigInt(),
+//     };
+//   }
+
+//   toFields(): Field[] {
+//     return [
+//       ...this.name.values.map((item) => item.toField()),
+//       ...this.surname.values.map((item) => item.toField()),
+//       ...this.country.values.map((item) => item.toField()),
+//       ...this.pno.values.map((item) => item.toField()),
+//       this.currentDate,
+//       this.isMockData,
+//     ];
+//   }
+// }
 
 export class PersonalData extends Struct({
   name: CircuitString,
@@ -77,20 +168,13 @@ export const zkOracleResponseMock = () => {
 
 export const passKeysResponseMock = () => {
   return {
-    id: Field(
-      BigInt(
-        [...'qaJp7BwUkIObDyRE5o_xNg'].map((char) => char.charCodeAt(0)).join('')
-      )
-    ),
-    publicKey: Secp256r1.fromHex(
-      '0x04f233d2c2db88ea7c936939cea21f22f1d308d3f527969f5e73ef49b47245d80c8abc0824030a31ee43dfba8419e5044f1f9e82d4e72d73b847b8ffd5f606d0a8'
-    ),
-    payload: Secp256r1.Scalar.from(
-      '0xecaa80f4b8f73bec3100e49e601a9ffbf194d4d6b1610701aafdcc390a4ca953'
-    ),
-    signature: EcdsaP256.fromHex(
-      '0x708330e4d634d1446cd955272c514c9a2a963e5cb1bffc5185fd404f7a6ad794274c91e52ebfa9331ce79a558ec7477a38bf43c19463fc034a022311234fa840'
-    ),
+    id: 'qaJp7BwUkIObDyRE5o_xNg',
+    publicKey:
+      '0x04f233d2c2db88ea7c936939cea21f22f1d308d3f527969f5e73ef49b47245d80c8abc0824030a31ee43dfba8419e5044f1f9e82d4e72d73b847b8ffd5f606d0a8',
+    payload:
+      '0xecaa80f4b8f73bec3100e49e601a9ffbf194d4d6b1610701aafdcc390a4ca953',
+    signature:
+      '0x708330e4d634d1446cd955272c514c9a2a963e5cb1bffc5185fd404f7a6ad794274c91e52ebfa9331ce79a558ec7477a38bf43c19463fc034a022311234fa840',
   };
 };
 
@@ -104,7 +188,7 @@ export const encodeToAsciiNumber = (str: string) => {
 };
 
 // Convert concatenated ASCII values back to string
-export const decodeFromAsciiNumber = (num: number) => {
+export const decodeFromAsciiNumber = (num: bigint) => {
   const strNum = num.toString();
   const result = [];
   let i = 0;
@@ -140,7 +224,7 @@ export const decodeFromAsciiNumber = (num: number) => {
   return result.join('');
 };
 
-export const toPublicKeyHex = (x: number, y: number) => {
+export const toPublicKeyHex = (x: bigint, y: bigint) => {
   /*
   Example usage:
 
@@ -161,4 +245,8 @@ export const toPublicKeyHex = (x: number, y: number) => {
   return (
     '0x04' + x.toString(16).padStart(64, '0') + y.toString(16).padStart(64, '0')
   );
+};
+
+export const bigintToHex = (bn: bigint, length = 32) => {
+  return bn.toString(16).padStart(length * 2, '0');
 };
