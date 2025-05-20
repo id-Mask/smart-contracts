@@ -50,8 +50,8 @@ describe('ProofOfNationality', () => {
     this zkProgram.
   */
   it('zkProgram: verifies zkOracle response data', async () => {
-    const personalData_ = personalDataResponseMock();
-    const personalData = new PersonalData(personalData_);
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
     const validSignature = personalData.signature.verify(
       personalData.publicKey,
       personalData.toFields()
@@ -60,13 +60,16 @@ describe('ProofOfNationality', () => {
   });
 
   it('zkProgram: produces proof', async () => {
-    const personalData_ = personalDataResponseMock();
-    const personalData = new PersonalData(personalData_);
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
 
-    const accountParams = creatorAccountResponseMock(personalData.toFields());
-    const creatorAccount = new CreatorAccount(accountParams);
+    const creatorAccountParams = creatorAccountResponseMock(
+      personalData.toFields()
+    );
+    const creatorAccount = new CreatorAccount(creatorAccountParams);
 
-    const passKeys = new PassKeys(passKeysResponseMock());
+    const passKeysParams = passKeysResponseMock();
+    const passKeys = new PassKeys(passKeysParams);
 
     const { proof } = await proofOfNationality.proveNationality(
       personalData,
@@ -110,7 +113,7 @@ describe('ProofOfNationality', () => {
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
-    ).toBe(creatorAccount.publicKey.toBase58());
+    ).toBe(creatorAccountParams.publicKey);
 
     // passkey public key
     const passKeysX = proofJson.publicOutput
@@ -176,13 +179,16 @@ describe('ProofOfNationality', () => {
     await localDeploy();
 
     // create the zkProgram proof
-    const personalData_ = personalDataResponseMock();
-    const personalData = new PersonalData(personalData_);
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
 
-    const accountParams = creatorAccountResponseMock(personalData.toFields());
-    const creatorAccount = new CreatorAccount(accountParams);
+    const creatorAccountParams = creatorAccountResponseMock(
+      personalData.toFields()
+    );
+    const creatorAccount = new CreatorAccount(creatorAccountParams);
 
-    const passKeys = new PassKeys(passKeysResponseMock());
+    const passKeysParams = passKeysResponseMock();
+    const passKeys = new PassKeys(passKeysParams);
 
     const { proof } = await proofOfNationality.proveNationality(
       personalData,

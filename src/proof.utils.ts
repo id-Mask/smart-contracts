@@ -125,15 +125,31 @@ export class PersonalData extends Struct({
 export class CreatorAccount extends Struct({
   publicKey: PublicKey,
   signature: Signature,
-}) {}
+}) {
+  constructor(data: { publicKey: string; signature: object }) {
+    super({
+      publicKey: PublicKey.fromJSON(data.publicKey),
+      signature: Signature.fromJSON(data.signature),
+    });
+  }
+  toJSON(): {
+    publicKey: string;
+    signature: object;
+  } {
+    return {
+      publicKey: this.publicKey.toBase58(),
+      signature: this.signature.toJSON(),
+    };
+  }
+}
 
 export const creatorAccountResponseMock = (fieldArray: Field[]) => {
   const creatorPrivateKey = PrivateKey.random();
   const creatorPublicKey = creatorPrivateKey.toPublicKey();
   const creatorDataSignature = Signature.create(creatorPrivateKey, fieldArray);
   return {
-    publicKey: creatorPublicKey,
-    signature: creatorDataSignature,
+    publicKey: creatorPublicKey.toBase58(),
+    signature: creatorDataSignature.toJSON(),
   };
 };
 

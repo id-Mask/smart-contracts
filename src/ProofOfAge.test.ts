@@ -70,10 +70,13 @@ describe('ProofOfAge', () => {
     const personalDataParams = personalDataResponseMock();
     const personalData = new PersonalData(personalDataParams);
 
-    const accountParams = creatorAccountResponseMock(personalData.toFields());
-    const creatorAccount = new CreatorAccount(accountParams);
+    const creatorAccountParams = creatorAccountResponseMock(
+      personalData.toFields()
+    );
+    const creatorAccount = new CreatorAccount(creatorAccountParams);
 
-    const passKeys = new PassKeys(passKeysResponseMock());
+    const passKeysParams = passKeysResponseMock();
+    const passKeys = new PassKeys(passKeysParams);
 
     const { proof } = await proofOfAge.proveAge(
       Field(ageToProveInYears),
@@ -119,7 +122,7 @@ describe('ProofOfAge', () => {
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
-    ).toBe(accountParams.publicKey.toBase58());
+    ).toBe(creatorAccountParams.publicKey);
 
     // passkey public key
     const passKeysX = proofJson.publicOutput
@@ -189,12 +192,14 @@ describe('ProofOfAge', () => {
     const ageToProveInYears = 18;
     const personalDataParams = personalDataResponseMock();
     const personalData = new PersonalData(personalDataParams);
-    const ageToProveInYears = 18;
 
-    const accountParams = creatorAccountResponseMock(personalData.toFields());
-    const creatorAccount = new CreatorAccount(accountParams);
+    const creatorAccountParams = creatorAccountResponseMock(
+      personalData.toFields()
+    );
+    const creatorAccount = new CreatorAccount(creatorAccountParams);
 
-    const passKeys = new PassKeys(passKeysResponseMock());
+    const passKeysParams = passKeysResponseMock();
+    const passKeys = new PassKeys(passKeysParams);
 
     const { proof } = await proofOfAge.proveAge(
       Field(ageToProveInYears),

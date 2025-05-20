@@ -5,12 +5,17 @@ import {
   ProofOfUniqueHumanProof,
 } from './ProofOfUniqueHuman.js';
 
-import { getMockSecretValue } from './ProofOfUniqueHuman.utils.js';
+import {
+  getMockPersonalSecretValue,
+  PersonalSecretValue,
+} from './ProofOfUniqueHuman.utils.js';
 
 import {
   PersonalData,
-  personalDataResponseMock,
+  CreatorAccount,
   PassKeys,
+  personalDataResponseMock,
+  creatorAccountResponseMock,
   passKeysResponseMock,
   Secp256r1,
 } from './proof.utils.js';
@@ -21,10 +26,8 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
-  Signature,
   JsonProof,
   Cache,
-  CircuitString,
 } from 'o1js';
 
 import { Field3 } from 'o1js/dist/node/lib/provable/gadgets/foreign-field.js';
@@ -57,38 +60,34 @@ describe('ProofOfUniqueHuman', () => {
       done in proof of age. Testing secret value only
     */
 
-    const mockSecret = getMockSecretValue();
-    const secretValue = CircuitString.fromString(mockSecret.secret);
-    const signature = Signature.fromJSON(mockSecret.signature);
-    const validSignature = signature.verify(
-      PublicKey.fromBase58(mockSecret.publicKey),
-      secretValue.values.map((item) => item.toField())
+    const personalSecretParams = getMockPersonalSecretValue();
+    const personalSecret = new PersonalSecretValue(personalSecretParams);
+    const validSignature = personalSecret.signature.verify(
+      personalSecret.publicKey,
+      personalSecret.toFields()
     );
     expect(validSignature.toBoolean()).toBe(true);
   });
 
   it('zkProgram: produces proof', async () => {
-    const personalData_ = personalDataResponseMock();
-    const personalData = new PersonalData(personalData_);
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
 
-    const mockSecret = getMockSecretValue();
-    const secretValue = CircuitString.fromString(mockSecret.secret);
+    const personalSecretParams = getMockPersonalSecretValue();
+    const personalSecret = new PersonalSecretValue(personalSecretParams);
 
-    const creatorPrivateKey = PrivateKey.random();
-    const creatorPublicKey = creatorPrivateKey.toPublicKey();
-    const creatorDataSignature = Signature.create(
-      creatorPrivateKey,
+    const creatorAccountParams = creatorAccountResponseMock(
       personalData.toFields()
     );
-    const passKeys = new PassKeys(passKeysResponseMock());
+    const creatorAccount = new CreatorAccount(creatorAccountParams);
+
+    const passKeysParams = passKeysResponseMock();
+    const passKeys = new PassKeys(passKeysParams);
 
     const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
-      personalData.signature,
-      secretValue,
-      Signature.fromJSON(mockSecret.signature),
-      creatorDataSignature,
-      creatorPublicKey,
+      personalSecret,
+      creatorAccount,
       passKeys
     );
     const proofJson = proof.toJSON();
@@ -127,7 +126,7 @@ describe('ProofOfUniqueHuman', () => {
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
-    ).toBe(creatorPublicKey.toBase58());
+    ).toBe(creatorAccount.publicKey.toBase58());
 
     // mina wallet public key
     expect(
@@ -135,7 +134,7 @@ describe('ProofOfUniqueHuman', () => {
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
-    ).toBe(creatorPublicKey.toBase58());
+    ).toBe(creatorAccount.publicKey.toBase58());
 
     // passkey public key
     const passKeysX = proofJson.publicOutput
@@ -200,27 +199,24 @@ describe('ProofOfUniqueHuman', () => {
   it('smart contract: consumes the proof and runs method', async () => {
     await localDeploy();
 
-    const personalData_ = personalDataResponseMock();
-    const personalData = new PersonalData(personalData_);
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
 
-    const mockSecret = getMockSecretValue();
-    const secretValue = CircuitString.fromString(mockSecret.secret);
+    const personalSecretParams = getMockPersonalSecretValue();
+    const personalSecret = new PersonalSecretValue(personalSecretParams);
 
-    const creatorPrivateKey = PrivateKey.random();
-    const creatorPublicKey = creatorPrivateKey.toPublicKey();
-    const creatorDataSignature = Signature.create(
-      creatorPrivateKey,
+    const creatorAccountParams = creatorAccountResponseMock(
       personalData.toFields()
     );
-    const passKeys = new PassKeys(passKeysResponseMock());
+    const creatorAccount = new CreatorAccount(creatorAccountParams);
+
+    const passKeysParams = passKeysResponseMock();
+    const passKeys = new PassKeys(passKeysParams);
 
     const { proof } = await proofOfUniqueHuman.proveUniqueHuman(
       personalData,
-      personalData.signature,
-      secretValue,
-      Signature.fromJSON(mockSecret.signature),
-      creatorDataSignature,
-      creatorPublicKey,
+      personalSecret,
+      creatorAccount,
       passKeys
     );
     const proofJson = proof.toJSON();

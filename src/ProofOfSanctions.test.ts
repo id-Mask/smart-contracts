@@ -3,17 +3,20 @@ import {
   proofOfSanctions,
   ProofOfSanctions,
   ProofOfSanctionsProof,
-  SanctionsData,
 } from './ProofOfSanctions.js';
 
+import { SanctionsData } from './ProofOfSanctions.utils.js';
+
 import {
-  PassKeys,
-  passKeysResponseMock,
   PersonalData,
+  CreatorAccount,
+  PassKeys,
   personalDataResponseMock,
+  creatorAccountResponseMock,
+  passKeysResponseMock,
   Secp256r1,
 } from './proof.utils.js';
-import { zkOracleSanctionsDataResponseMock } from './ProofOfSanctions.utils.js';
+import { sanctionsDataResponseMock } from './ProofOfSanctions.utils.js';
 
 import {
   Field,
@@ -21,9 +24,7 @@ import {
   PrivateKey,
   PublicKey,
   AccountUpdate,
-  Signature,
   JsonProof,
-  Bool,
   Cache,
 } from 'o1js';
 
@@ -52,20 +53,10 @@ describe('ProofOfSanctions', () => {
     this zkProgram.
   */
   it('zkProgram: verifies zkOracle response data', async () => {
-    const isMatched = false;
-    const zkOracleResponseSanctionsData =
-      zkOracleSanctionsDataResponseMock(isMatched);
-    const sanctionsData = new SanctionsData({
-      isMatched: Bool(zkOracleResponseSanctionsData.data.isMatched),
-      minScore: Field(zkOracleResponseSanctionsData.data.minScore),
-      currentDate: Field(zkOracleResponseSanctionsData.data.currentDate),
-    });
-    const validSignatureSanctionsData = Signature.fromJSON(
-      zkOracleResponseSanctionsData.signature
-    ).verify(
-      PublicKey.fromBase58(
-        'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
-      ),
+    const sanctionsDataParams = sanctionsDataResponseMock({ isMatched: false });
+    const sanctionsData = new SanctionsData(sanctionsDataParams);
+    const validSignatureSanctionsData = sanctionsData.signature.verify(
+      sanctionsData.publicKey,
       sanctionsData.toFields()
     );
     expect(validSignatureSanctionsData.toBoolean()).toBe(true);
@@ -73,37 +64,27 @@ describe('ProofOfSanctions', () => {
 
   it('zkProgram: produces proof', async () => {
     // personal data
-    const personalData_ = personalDataResponseMock();
-    const personalData = new PersonalData(personalData_);
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
 
     // sanctions data
-    const isMatched = false;
-    const zkOracleResponseSanctionsData =
-      zkOracleSanctionsDataResponseMock(isMatched);
-    const sanctionsData = new SanctionsData({
-      isMatched: Bool(zkOracleResponseSanctionsData.data.isMatched),
-      minScore: Field(zkOracleResponseSanctionsData.data.minScore),
-      currentDate: Field(zkOracleResponseSanctionsData.data.currentDate),
-    });
+    const sanctionsDataParams = sanctionsDataResponseMock({ isMatched: false });
+    const sanctionsData = new SanctionsData(sanctionsDataParams);
 
     // mina account key pair
-    const creatorPrivateKey = PrivateKey.random();
-    const creatorPublicKey = creatorPrivateKey.toPublicKey();
-    const creatorDataSignature = Signature.create(
-      creatorPrivateKey,
+    const creatorAccountParams = creatorAccountResponseMock(
       sanctionsData.toFields()
     );
+    const creatorAccount = new CreatorAccount(creatorAccountParams);
 
     // passkeys key pair
-    const passKeys = new PassKeys(passKeysResponseMock());
+    const passKeysParams = passKeysResponseMock();
+    const passKeys = new PassKeys(passKeysParams);
 
     const { proof } = await proofOfSanctions.proveSanctions(
       sanctionsData,
       personalData,
-      personalData.signature,
-      Signature.fromJSON(zkOracleResponseSanctionsData.signature),
-      creatorDataSignature,
-      creatorPublicKey,
+      creatorAccount,
       passKeys
     );
     const proofJson = proof.toJSON();
@@ -134,18 +115,16 @@ describe('ProofOfSanctions', () => {
       11    -> is personal data mocked? (1 yes, 0 no)
     */
 
-    expect(proofJson.publicOutput[0]).toBe(
-      zkOracleResponseSanctionsData.data.minScore.toString()
-    );
+    expect(proofJson.publicOutput[0]).toBe(sanctionsData.minScore.toString());
     expect(proofJson.publicOutput[1]).toBe(
-      zkOracleResponseSanctionsData.data.currentDate.toString()
+      sanctionsData.currentDate.toString()
     );
     expect(
       PublicKey.fromFields([
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
-    ).toBe(creatorPublicKey.toBase58());
+    ).toBe(creatorAccount.publicKey.toBase58());
 
     // mina wallet public key
     expect(
@@ -153,7 +132,7 @@ describe('ProofOfSanctions', () => {
         Field(proofJson.publicOutput[2]),
         Field(proofJson.publicOutput[3]),
       ]).toBase58()
-    ).toBe(creatorPublicKey.toBase58());
+    ).toBe(creatorAccount.publicKey.toBase58());
 
     // passkey public key
     const passKeysX = proofJson.publicOutput
@@ -219,37 +198,27 @@ describe('ProofOfSanctions', () => {
     await localDeploy();
 
     // personal data
-    const personalData_ = personalDataResponseMock();
-    const personalData = new PersonalData(personalData_);
+    const personalDataParams = personalDataResponseMock();
+    const personalData = new PersonalData(personalDataParams);
 
     // sanctions data
-    const isMatched = false;
-    const zkOracleResponseSanctionsData =
-      zkOracleSanctionsDataResponseMock(isMatched);
-    const sanctionsData = new SanctionsData({
-      isMatched: Bool(zkOracleResponseSanctionsData.data.isMatched),
-      minScore: Field(zkOracleResponseSanctionsData.data.minScore),
-      currentDate: Field(zkOracleResponseSanctionsData.data.currentDate),
-    });
+    const sanctionsDataParams = sanctionsDataResponseMock({ isMatched: false });
+    const sanctionsData = new SanctionsData(sanctionsDataParams);
 
     // mina account key pair
-    const creatorPrivateKey = PrivateKey.random();
-    const creatorPublicKey = creatorPrivateKey.toPublicKey();
-    const creatorDataSignature = Signature.create(
-      creatorPrivateKey,
+    const creatorAccountParams = creatorAccountResponseMock(
       sanctionsData.toFields()
     );
+    const creatorAccount = new CreatorAccount(creatorAccountParams);
 
     // passkeys key pair
-    const passKeys = new PassKeys(passKeysResponseMock());
+    const passKeysParams = passKeysResponseMock();
+    const passKeys = new PassKeys(passKeysParams);
 
     const { proof } = await proofOfSanctions.proveSanctions(
       sanctionsData,
       personalData,
-      personalData.signature,
-      Signature.fromJSON(zkOracleResponseSanctionsData.signature),
-      creatorDataSignature,
-      creatorPublicKey,
+      creatorAccount,
       passKeys
     );
     const proofJson = proof.toJSON();

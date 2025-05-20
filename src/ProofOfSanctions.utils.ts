@@ -1,7 +1,51 @@
 import 'dotenv/config';
-import { Field, PrivateKey, Signature, Bool } from 'o1js';
+import { Field, PrivateKey, PublicKey, Signature, Bool, Struct } from 'o1js';
 
-const zkOracleSanctionsDataResponseMock = (isMatched: boolean) => {
+export class SanctionsData extends Struct({
+  isMatched: Bool,
+  minScore: Field,
+  currentDate: Field,
+  signature: Signature,
+  publicKey: PublicKey,
+}) {
+  constructor(data: {
+    isMatched: boolean;
+    minScore: number;
+    currentDate: number;
+    signature: object;
+    publicKey: string;
+  }) {
+    super({
+      isMatched: Bool(data.isMatched),
+      minScore: Field(data.minScore),
+      currentDate: Field(data.currentDate),
+      signature: Signature.fromJSON(data.signature),
+      publicKey: PublicKey.fromJSON(data.publicKey),
+    });
+  }
+
+  toJSON(): {
+    isMatched: boolean;
+    minScore: number;
+    currentDate: number;
+    signature: object;
+    publicKey: string;
+  } {
+    return {
+      isMatched: this.isMatched.toBoolean(),
+      minScore: Number(this.minScore.toBigInt()),
+      currentDate: Number(this.currentDate.toBigInt()),
+      signature: this.signature.toJSON(),
+      publicKey: this.publicKey.toBase58(),
+    };
+  }
+
+  toFields(): Field[] {
+    return [this.isMatched.toField(), this.minScore, this.currentDate];
+  }
+}
+
+const sanctionsDataResponseMock = ({ isMatched }: { isMatched: boolean }) => {
   const data = {
     isMatched: isMatched,
     minScore: 95,
@@ -20,10 +64,12 @@ const zkOracleSanctionsDataResponseMock = (isMatched: boolean) => {
   const signature = Signature.create(privateKey, dataToSign);
 
   return {
-    data: data,
+    isMatched: data.isMatched,
+    minScore: data.minScore,
+    currentDate: data.currentDate,
     signature: signature.toJSON(),
     publicKey: publicKey.toBase58(),
   };
 };
 
-export { zkOracleSanctionsDataResponseMock };
+export { sanctionsDataResponseMock };

@@ -11,7 +11,13 @@ import {
   PublicKey,
 } from 'o1js';
 
-import { PersonalData, PassKeys, Secp256r1 } from './proof.utils.js';
+import {
+  PersonalData,
+  PassKeys,
+  Secp256r1,
+  CreatorAccount,
+} from './proof.utils.js';
+import { PersonalSecretValue } from './ProofOfUniqueHuman.utils.js';
 
 class PublicOutput extends Struct({
   hash: Field,
@@ -30,20 +36,14 @@ export const proofOfUniqueHuman = ZkProgram({
     proveUniqueHuman: {
       privateInputs: [
         PersonalData,
-        Signature, // zkOracle data signature
-        CircuitString, // unique secret value
-        Signature, // signature of unique secret value
-        Signature, // creator wallet signature
-        PublicKey, // creator wallet public key
+        PersonalSecretValue, // unique secret value
+        CreatorAccount,
         PassKeys, // passkeys params
       ],
       async method(
         personalData: PersonalData,
-        personalDataSignature: Signature,
-        secretValue: CircuitString,
-        secretValueSignature: Signature,
-        creatorSignature: Signature,
-        creatorPublicKey: PublicKey,
+        personalSecretValue: PersonalSecretValue,
+        creatorAccount: CreatorAccount,
         PassKeys: PassKeys
       ) {
         const oraclePublicKey = PublicKey.fromBase58(
@@ -51,7 +51,7 @@ export const proofOfUniqueHuman = ZkProgram({
         );
 
         // verify data inputs
-        const validSignatureOracle = personalDataSignature.verify(
+        const validSignatureOracle = personalData.signature.verify(
           oraclePublicKey,
           personalData.toFields()
         );
@@ -68,15 +68,15 @@ export const proofOfUniqueHuman = ZkProgram({
           Instead of: hash(name, surname, pno), do: hash(name, surname, pno, secretvalue)
 
         */
-        const validSecretValue = secretValueSignature.verify(
+        const validSecretValue = personalSecretValue.signature.verify(
           oraclePublicKey,
-          secretValue.values.map((item) => item.toField())
+          personalSecretValue.toFields()
         );
         validSecretValue.assertTrue();
 
         // verify creator signature
-        const validSignatureWallet = creatorSignature.verify(
-          creatorPublicKey,
+        const validSignatureWallet = creatorAccount.signature.verify(
+          creatorAccount.publicKey,
           personalData.toFields()
         );
         validSignatureWallet.assertTrue();
@@ -97,14 +97,14 @@ export const proofOfUniqueHuman = ZkProgram({
           // ...personalData.name.values.map((item) => item.toField()),
           // ...personalData.surname.values.map((item) => item.toField()),
           ...personalData.pno.values.map((item) => item.toField()),
-          ...secretValue.values.map((item) => item.toField()),
+          ...personalSecretValue.toFields(),
         ]);
 
         return {
           publicOutput: {
             hash: hash,
             currentDate: personalData.currentDate,
-            creatorPublicKey: creatorPublicKey,
+            creatorPublicKey: creatorAccount.publicKey,
             passkeysPublicKey: PassKeys.publicKey,
             passkeysId: PassKeys.id,
             isMockData: personalData.isMockData,

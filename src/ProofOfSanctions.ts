@@ -10,17 +10,14 @@ import {
   PublicKey,
 } from 'o1js';
 
-import { PersonalData, PassKeys, Secp256r1 } from './proof.utils.js';
+import {
+  PersonalData,
+  PassKeys,
+  CreatorAccount,
+  Secp256r1,
+} from './proof.utils.js';
 
-export class SanctionsData extends Struct({
-  isMatched: Bool,
-  minScore: Field,
-  currentDate: Field,
-}) {
-  toFields(): Field[] {
-    return [this.isMatched.toField(), this.minScore, this.currentDate];
-  }
-}
+import { SanctionsData } from './ProofOfSanctions.utils.js';
 
 class PublicOutput extends Struct({
   minScore: Field,
@@ -33,38 +30,32 @@ class PublicOutput extends Struct({
 
 export const proofOfSanctions = ZkProgram({
   name: 'ZkProofOfSanctions',
-  publicInput: SanctionsData, // defined above
+  publicInput: SanctionsData,
   publicOutput: PublicOutput, // defined above
   methods: {
     proveSanctions: {
       privateInputs: [
         PersonalData,
-        Signature, // zkOracle data signature (personal data)
-        Signature, // zkOracle data signature (is matched data)
-        Signature, // creator wallet signature
-        PublicKey, // creator wallet public key
+        CreatorAccount,
         PassKeys, // passkeys params
       ],
       async method(
         sanctionsData: SanctionsData,
         personalData: PersonalData,
-        oracleSignaturePersonalData: Signature,
-        oracleSignatureSanctionsData: Signature,
-        creatorSignature: Signature,
-        creatorPublicKey: PublicKey,
+        creatorAccount: CreatorAccount,
         PassKeys: PassKeys
       ) {
-        // verify zkOracle data (personal data)
-        const validSignaturePersonalData = oracleSignaturePersonalData.verify(
+        // verify personalData
+        const validSignatureOracle = personalData.signature.verify(
           PublicKey.fromBase58(
             'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
           ),
           personalData.toFields()
         );
-        validSignaturePersonalData.assertTrue();
+        validSignatureOracle.assertTrue();
 
-        // verify zkOracle data (sanctions match)
-        const validSignatureSanctionsData = oracleSignatureSanctionsData.verify(
+        // verify sanctionsData
+        const validSignatureSanctionsData = sanctionsData.signature.verify(
           PublicKey.fromBase58(
             'B62qmXFNvz2sfYZDuHaY5htPGkx1u2E2Hn3rWuDWkE11mxRmpijYzWN'
           ),
@@ -72,14 +63,14 @@ export const proofOfSanctions = ZkProgram({
         );
         validSignatureSanctionsData.assertTrue();
 
-        // verify creator wallet signature
-        const validSignatureWallet = creatorSignature.verify(
-          creatorPublicKey,
+        // verify creatorAccount
+        const validSignatureWallet = creatorAccount.signature.verify(
+          creatorAccount.publicKey,
           sanctionsData.toFields()
         );
         validSignatureWallet.assertTrue();
 
-        // verify passkeys signature
+        // verify PassKeys
         const validSignaturePassKeys = PassKeys.signature.verifySignedHash(
           PassKeys.payload,
           PassKeys.publicKey
@@ -93,7 +84,7 @@ export const proofOfSanctions = ZkProgram({
           publicOutput: {
             minScore: sanctionsData.minScore,
             currentDate: sanctionsData.currentDate,
-            creatorPublicKey: creatorPublicKey,
+            creatorPublicKey: creatorAccount.publicKey,
             passkeysPublicKey: PassKeys.publicKey,
             passkeysId: PassKeys.id,
             isMockData: personalData.isMockData,
